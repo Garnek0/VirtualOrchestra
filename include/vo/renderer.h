@@ -18,29 +18,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <SDL2/SDL.h>
+#pragma once
 
-#include <vo/ver.h>
-#include <vo/debug.h>
-#include <vo/renderer.h>
-#include <vo/event.h>
-
-int main() {
-	printf("Virtual Orchestra %d.%d.%d by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
-
-	if (renderer_init() != 0) {
-		debug_log(LOGLEVEL_FATAL, "Main: Renderer init failed!\n");
-		return 1;
-	}
-
-	while(!event_has_signaled_quit()) {
-		renderer_iteration();
-		event_iteration();
-	}
-
-	renderer_fini();
-	SDL_Quit();
-
-	return 0;
-}
+int renderer_init();
+void renderer_fini();
+void renderer_iteration();

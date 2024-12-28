@@ -1,5 +1,5 @@
 CC = gcc
-LD= ld
+LD = ld
 CFLAGS = -Wall -Wextra -Wno-unused-parameter
 CFLAGS += -Iinclude
 CFLAGS += $(shell pkg-config --cflags sdl2)

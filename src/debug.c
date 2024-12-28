@@ -18,29 +18,38 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <SDL2/SDL.h>
-
-#include <vo/ver.h>
 #include <vo/debug.h>
-#include <vo/renderer.h>
-#include <vo/event.h>
+#include <stdarg.h>
+#include <stdio.h>
 
-int main() {
-	printf("Virtual Orchestra %d.%d.%d by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
+int debug_log(int loglevel, const char* fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
 
-	if (renderer_init() != 0) {
-		debug_log(LOGLEVEL_FATAL, "Main: Renderer init failed!\n");
-		return 1;
+	int chars;
+
+	switch(loglevel) {
+		case LOGLEVEL_DEBUG:
+			fprintf(stderr, "\e[0;35m[ DEBUG ] ");
+			break;
+		case LOGLEVEL_INFO:
+			fprintf(stderr, "\e[0;34m[ INFO  ] ");
+			break;
+		case LOGLEVEL_WARN:
+			fprintf(stderr, "\e[0;33m[ WARN  ] ");
+			break;
+		case LOGLEVEL_ERROR:
+			fprintf(stderr, "\e[0;31m[ ERROR ] ");
+			break;
+		case LOGLEVEL_FATAL:
+			fprintf(stderr, "\e[0;31m[ FATAL ] ");
+			break;
+		default:
+			break;
 	}
 
-	while(!event_has_signaled_quit()) {
-		renderer_iteration();
-		event_iteration();
-	}
+	chars = vfprintf(stderr, fmt, args);
+	fprintf(stderr, "\e[0m");
 
-	renderer_fini();
-	SDL_Quit();
-
-	return 0;
+	return chars;
 }
