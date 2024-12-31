@@ -20,6 +20,11 @@
 
 #pragma once
 
+#include <vo/instrument.h>
+
 int renderer_init();
 void renderer_fini();
 void renderer_iteration();
+int renderer_init_instrument(struct instrument* instr);
+void renderer_fini_instrument(struct instrument* instr);
+void renderer_render_instrument(struct instrument* instr, int screenX, int screenY);

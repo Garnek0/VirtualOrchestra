@@ -18,32 +18,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <SDL2/SDL.h>
+#pragma once
 
-#include <vo/ver.h>
-#include <vo/debug.h>
-#include <vo/renderer.h>
-#include <vo/event.h>
-#include <vo/instrument.h>
+struct instrument {
+	int id; // Instrument ID
 
-int main() {
-	printf("Virtual Orchestra %d.%d.%d by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
+	int x, y; // Base coordinates
+	
+	char* graphic; // Instrument graphic
+	
+	void* rendererData; // Renderer private data
+};
 
-	if (renderer_init() != 0) {
-		debug_log(LOGLEVEL_FATAL, "Main: Renderer init failed!\n");
-		return 1;
-	}
-
-	struct instrument* instr = instrument_new("res/instrument/test/graphic.png");
-
-	while(!event_has_signaled_quit()) {
-		renderer_iteration();
-		event_iteration();
-	}
-
-	renderer_fini();
-	SDL_Quit();
-
-	return 0;
-}
+struct instrument* instrument_new(char* graphicPath);
+void instrument_destroy(struct instrument* obj);
+void instrument_render_all();

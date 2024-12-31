@@ -51,5 +51,7 @@ int debug_log(int loglevel, const char* fmt, ...) {
 	chars = vfprintf(stderr, fmt, args);
 	fprintf(stderr, "\e[0m");
 
+	va_end(args);
+
 	return chars;
 }

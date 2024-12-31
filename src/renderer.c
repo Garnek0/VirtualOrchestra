@@ -22,6 +22,12 @@
 #include <vo/ver.h>
 #include <vo/renderer.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+// Renderer data struct for instruments
+struct renderer_instr_data {
+	SDL_Texture* loadedGraphic;	
+};
 
 SDL_Window* window;
 SDL_Renderer* renderer;
@@ -49,7 +55,60 @@ int renderer_init() {
 		return -1;
 	}
 
+	// NOTE: Meh, this good enough for testing i guess. PNG may not be the best option 
+	// for what i'm trying to do... A vector-based format would be way better.
+	if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+		debug_log(LOGLEVEL_FATAL, "Renderer: SDL_image init failed: %s\n", IMG_GetError());
+		return -1;
+	}
+
 	return 0;
+}
+
+int renderer_init_instrument(struct instrument* instr) {	
+	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)malloc(sizeof(struct renderer_instr_data));
+	memset((void*)rendererData, 0, sizeof(struct renderer_instr_data));
+
+	SDL_Surface* graphicSurface = IMG_Load(instr->graphic);
+	if (!graphicSurface) {
+		debug_log(LOGLEVEL_ERROR, "Renderer: Instrument graphic file \"%s\" for instrument with ID=%d could not be loaded: %s\n", instr->graphic, instr->id, IMG_GetError());
+		return -1;
+	}
+
+	rendererData->loadedGraphic = SDL_CreateTextureFromSurface(renderer, graphicSurface);
+
+	SDL_FreeSurface(graphicSurface);
+
+	if (!rendererData->loadedGraphic) {
+		debug_log(LOGLEVEL_ERROR, "Renderer: Could not create texture from surface for instrument with ID=%d: %s\n", instr->id, SDL_GetError());	
+		return -1;
+	}
+
+	instr->rendererData = rendererData;
+
+	return 0;
+}
+
+void renderer_fini_instrument(struct instrument* instr) {
+	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)instr->rendererData;
+
+	SDL_DestroyTexture(rendererData->loadedGraphic);
+	free((void*)rendererData);
+
+	instr->rendererData = NULL;
+}
+
+void renderer_render_instrument(struct instrument* instr, int screenX, int screenY) {
+	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)instr->rendererData;
+
+	SDL_Rect rect;
+
+	rect.x = screenX;
+	rect.y = screenY;
+
+	SDL_QueryTexture(rendererData->loadedGraphic, NULL, NULL, &rect.w, &rect.h);		
+
+	SDL_RenderCopy(renderer, rendererData->loadedGraphic, NULL, &rect);
 }
 
 void renderer_fini() {
@@ -58,9 +117,11 @@ void renderer_fini() {
 }
 
 void renderer_iteration() {
-	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	SDL_RenderClear(renderer);
+	instrument_render_all();
 
 	SDL_RenderPresent(renderer);
+
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_RenderClear(renderer);
 }
 
