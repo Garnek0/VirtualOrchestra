@@ -29,14 +29,24 @@
 
 int main() {
 	printf("Virtual Orchestra %d.%d.%d by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
-
+ 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: SDL init failed: %s\n", SDL_GetError());
 		return 1;
 	}
 
+	if (event_init() != 0) {
+		debug_log(LOGLEVEL_FATAL, "Main: Events init failed!\n");
+		return 1;
+	}
+
 	if (renderer_init() != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: Renderer init failed!\n");
+		return 1;
+	}	
+
+	if (instrument_init() != 0) {
+		debug_log(LOGLEVEL_FATAL, "Main: Instruments init failed!\n");
 		return 1;
 	}
 

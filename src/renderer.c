@@ -21,6 +21,7 @@
 #include <vo/debug.h>
 #include <vo/ver.h>
 #include <vo/renderer.h>
+#include <vo/event.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -81,6 +82,13 @@ int renderer_init() {
 
 	cameraX = -(rendererOutputWidth/2);
 	cameraY = -(rendererOutputHeight/2);
+
+	// Register the camera keyboard handlers
+	
+	event_add_keyboard_handler(SDLK_UP, KMOD_NONE, renderer_camera_handler_up);
+	event_add_keyboard_handler(SDLK_DOWN, KMOD_NONE, renderer_camera_handler_down);
+	event_add_keyboard_handler(SDLK_RIGHT, KMOD_NONE, renderer_camera_handler_right);
+	event_add_keyboard_handler(SDLK_LEFT, KMOD_NONE, renderer_camera_handler_left);
 
 	// NOTE: Meh, this good enough for testing i guess. PNG may not be the best option 
 	// for what i'm trying to do... A vector-based format would be way better.
@@ -144,7 +152,11 @@ void renderer_fini() {
 }
 
 void renderer_iteration() {
-	instrument_render_all();
+	struct list* instrumentList = instrument_get_list();
+
+	list_foreach(node, instrumentList) {
+		renderer_render_instrument((struct instrument*)node->data);
+	}
 
 	SDL_RenderPresent(renderer);
 
@@ -160,4 +172,20 @@ void renderer_camera_get_position(int* x, int* y) {
 void renderer_camera_set_position(int x, int y) {
 	cameraX = x;
 	cameraY = y;
+}
+
+void renderer_camera_handler_up() {
+	cameraY -= 10;
+}
+
+void renderer_camera_handler_down() {
+	cameraY += 10;
+}
+
+void renderer_camera_handler_right() {
+	cameraX += 10;
+}
+
+void renderer_camera_handler_left() {
+	cameraX -= 10;
 }

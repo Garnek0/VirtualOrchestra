@@ -20,36 +20,19 @@
 
 #include <vo/event.h>
 #include <vo/renderer.h>
+#include <vo/list.h>
 
 #include <SDL2/SDL.h>
 
 static bool quitSignaled = false;
-static const Uint8* kbState;
 
-// TODO: Handler system. This event thing should provide some sort of routine
-// for registering handlers for different types of events
-// (e.g. Call function1() when the W key is pressed, or call
-// function2() when the scroll wheel is moved, or maybe even
-// call function3() AND function4() when H is pressed).
+static struct list* keyboardHandlerList;
 
-// NOTE: Temporary! This should be part of renderer.c!
-static void __event_check_camera_movement() {
-	// Check camera movement events via the keyboard
+int event_init() {
+	keyboardHandlerList = list_create();
 
-	int cameraX, cameraY;
-	renderer_camera_get_position(&cameraX, &cameraY);
-
-	if (kbState[SDL_SCANCODE_UP] && !kbState[SDL_SCANCODE_DOWN])
-		cameraY -= 10;
-	if (kbState[SDL_SCANCODE_DOWN] && !kbState[SDL_SCANCODE_UP])
-		cameraY += 10;
-	if (kbState[SDL_SCANCODE_RIGHT] && !kbState[SDL_SCANCODE_LEFT])
-		cameraX += 10;
-	if (kbState[SDL_SCANCODE_LEFT] && !kbState[SDL_SCANCODE_RIGHT])
-		cameraX -= 10;
-
-	renderer_camera_set_position(cameraX, cameraY);
-} 
+	return 0;
+}
 
 void event_iteration() {
 	SDL_Event event;
@@ -63,9 +46,36 @@ void event_iteration() {
 		}
 	}
 
-	kbState = SDL_GetKeyboardState(NULL);
+	// Check for keyboard events
 
-	__event_check_camera_movement();
+	const Uint8* kbState = SDL_GetKeyboardState(NULL);
+	SDL_Keymod kmState = SDL_GetModState();
+
+	struct keyboard_handler* kh;
+
+	list_foreach(node, keyboardHandlerList) {
+		kh = (struct keyboard_handler*)node->data;
+
+		if (kbState[SDL_GetScancodeFromKey(kh->key)] && ((kmState & kh->mod) == kh->mod))
+			kh->handler();
+	}
+}
+
+struct keyboard_handler* event_add_keyboard_handler(SDL_Keycode keycode, SDL_Keymod mod, void (*handler)(void)) {
+	struct keyboard_handler* kh = malloc(sizeof(struct keyboard_handler));
+	kh->key = keycode;
+	kh->mod = mod;
+	kh->handler = handler;
+
+	list_insert(keyboardHandlerList, (void*)kh);
+
+	return kh;
+}
+
+void event_remove_keyboard_handler(struct keyboard_handler* kh) {
+	list_remove(keyboardHandlerList, (void*)kh);
+
+	free((void*)kh);
 }
 
 bool event_has_signaled_quit() {

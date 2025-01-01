@@ -24,13 +24,18 @@
 #include <vo/instrument.h>
 #include <vo/debug.h>
 #include <vo/renderer.h>
-#include <vo/list.h>
 
 struct list* instrumentList;
 
 static int __instrument_gen_id(){
     static int id = 0;
     return id++;
+}
+
+int instrument_init() {
+	instrumentList = list_create();
+
+	return 0;
 }
 
 struct instrument* instrument_new(char* graphicPath) {
@@ -60,10 +65,7 @@ struct instrument* instrument_new(char* graphicPath) {
 	if (renderer_init_instrument(newInstr) != 0) {
 		debug_log(LOGLEVEL_ERROR, "Instrument: Renderer initialization for instrument with ID=%d failed.\n", newInstr->id);
 		goto fail;
-	}	
-
-	if (instrumentList == NULL)
-		instrumentList = list_create();
+	}
 
 	list_insert(instrumentList, (void*)newInstr);
 
@@ -94,12 +96,6 @@ void instrument_destroy(struct instrument* instr) {
 	free((void*)instr);
 }
 
-// NOTE: If you're wondering why this isnt part of renderer.c, its
-// because currently the instrument list is only accessible to
-// this translation unit. Yeah, bad design, i know. This will
-// probably be fixed in the future, though.
-void instrument_render_all() {
-	list_foreach(node, instrumentList) {
-		renderer_render_instrument((struct instrument*)node->data);
-	}	
+struct list* instrument_get_list() {
+	return instrumentList;
 }

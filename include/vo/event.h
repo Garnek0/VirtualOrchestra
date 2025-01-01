@@ -21,6 +21,18 @@
 #pragma once
 
 #include <stdbool.h>
+#include <SDL_keycode.h>
 
+struct keyboard_handler {
+	SDL_Keycode key;
+	SDL_Keymod mod;
+	void (*handler)(void);
+};
+
+int event_init();
 void event_iteration();
+
+struct keyboard_handler* event_add_keyboard_handler(SDL_Keycode keycode, SDL_Keymod mod, void (*handler)(void));
+void event_remove_keyboard_handler(struct keyboard_handler* kh);
+
 bool event_has_signaled_quit();

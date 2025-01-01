@@ -31,3 +31,7 @@ void renderer_render_instrument(struct instrument* instr);
 
 void renderer_camera_get_position(int* x, int* y);
 void renderer_camera_set_position(int x, int y);
+void renderer_camera_handler_up();
+void renderer_camera_handler_down();
+void renderer_camera_handler_right();
+void renderer_camera_handler_left();

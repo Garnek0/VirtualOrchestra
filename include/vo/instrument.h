@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <vo/list.h>
+
 struct instrument {
 	int id; // Instrument ID
 
@@ -30,7 +32,10 @@ struct instrument {
 	void* rendererData; // Renderer private data
 };
 
+int instrument_init();
+
 struct instrument* instrument_new(char* graphicPath);
 void instrument_set_position(struct instrument* instr, int x, int y);
 void instrument_destroy(struct instrument* instr);
-void instrument_render_all();
+
+struct list* instrument_get_list();
