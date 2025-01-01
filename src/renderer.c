@@ -21,6 +21,7 @@
 #include <vo/debug.h>
 #include <vo/ver.h>
 #include <vo/renderer.h>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
@@ -29,31 +30,57 @@ struct renderer_instr_data {
 	SDL_Texture* loadedGraphic;	
 };
 
-SDL_Window* window;
-SDL_Renderer* renderer;
+static SDL_Window* window;
+static SDL_Renderer* renderer;
+
+static int cameraX = 0;
+static int cameraY = 0;
 
 int renderer_init() {
-	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-		debug_log(LOGLEVEL_FATAL, "Renderer: SDL video subsystem init failed: %s\n", SDL_GetError());
-		return -1;
-	}
-
 	char* windowTitle = malloc(50);
 	sprintf(windowTitle, "Virtual Orchestra %d.%d.%d", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
 
-	window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, 0);
+	window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_RESIZABLE);
 
 	if (!window) {
 		debug_log(LOGLEVEL_FATAL, "Renderer: Failed to create SDL window: %s\n", SDL_GetError());
 		return -1;
 	}
 
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	int windowDisplayIndex = SDL_GetWindowDisplayIndex(window);
+
+	if (windowDisplayIndex < 0) {
+		debug_log(LOGLEVEL_FATAL, "Renderer: Failed to get window display index: %s\n", SDL_GetError());
+		return -1;
+	}
+
+	SDL_DisplayMode currentMode;
+
+	if (SDL_GetDesktopDisplayMode(windowDisplayIndex, &currentMode) != 0) {
+		debug_log(LOGLEVEL_FATAL, "Renderer: Failed to get current desktop display mode: %s\n", SDL_GetError());
+		return -1;
+	}
+
+	SDL_SetWindowSize(window, currentMode.w, currentMode.h);
+
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
 	if (!renderer) {
 		debug_log(LOGLEVEL_FATAL, "Renderer: Failed to create SDL renderer: %s\n", SDL_GetError());
 		return -1;
 	}
+
+	// Center the camera to point at (or roughly at) 0, 0
+
+	int rendererOutputWidth, rendererOutputHeight;
+
+	if (SDL_GetRendererOutputSize(renderer, &rendererOutputWidth, &rendererOutputHeight) != 0) {
+		debug_log(LOGLEVEL_FATAL, "Renderer: Failed to get renderer output size: %s\n", SDL_GetError());
+		return -1;
+	}
+
+	cameraX = -(rendererOutputWidth/2);
+	cameraY = -(rendererOutputHeight/2);
 
 	// NOTE: Meh, this good enough for testing i guess. PNG may not be the best option 
 	// for what i'm trying to do... A vector-based format would be way better.
@@ -98,15 +125,15 @@ void renderer_fini_instrument(struct instrument* instr) {
 	instr->rendererData = NULL;
 }
 
-void renderer_render_instrument(struct instrument* instr, int screenX, int screenY) {
+void renderer_render_instrument(struct instrument* instr) {
 	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)instr->rendererData;
 
 	SDL_Rect rect;
 
-	rect.x = screenX;
-	rect.y = screenY;
+	rect.x = instr->x - cameraX;
+	rect.y = instr->y - cameraY;
 
-	SDL_QueryTexture(rendererData->loadedGraphic, NULL, NULL, &rect.w, &rect.h);		
+	SDL_QueryTexture(rendererData->loadedGraphic, NULL, NULL, &rect.w, &rect.h);
 
 	SDL_RenderCopy(renderer, rendererData->loadedGraphic, NULL, &rect);
 }
@@ -125,3 +152,12 @@ void renderer_iteration() {
 	SDL_RenderClear(renderer);
 }
 
+void renderer_camera_get_position(int* x, int* y) {
+	*x = cameraX;
+	*y = cameraY;
+}
+
+void renderer_camera_set_position(int x, int y) {
+	cameraX = x;
+	cameraY = y;
+}

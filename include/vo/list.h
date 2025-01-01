@@ -20,14 +20,20 @@
 
 #pragma once
 
-#include <vo/instrument.h>
+struct list_node {
+	void* data;
+	struct list_node* next;
+};
 
-int renderer_init();
-void renderer_fini();
-void renderer_iteration();
-int renderer_init_instrument(struct instrument* instr);
-void renderer_fini_instrument(struct instrument* instr);
-void renderer_render_instrument(struct instrument* instr);
+struct list {
+	struct list_node* head;
+	struct list_node* tail;
+	int nodeCount;
+};
 
-void renderer_camera_get_position(int* x, int* y);
-void renderer_camera_set_position(int x, int y);
+#define list_foreach(i, list) for (struct list_node* i = (list)->head; i != NULL; i = i->next)
+
+struct list* list_create();
+void list_destroy(struct list* destroyList);
+void list_insert(struct list* insertList, void* data);
+void list_remove(struct list* deleteList, void* data);

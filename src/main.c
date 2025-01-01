@@ -30,12 +30,21 @@
 int main() {
 	printf("Virtual Orchestra %d.%d.%d by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
 
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		debug_log(LOGLEVEL_FATAL, "Main: SDL init failed: %s\n", SDL_GetError());
+		return 1;
+	}
+
 	if (renderer_init() != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: Renderer init failed!\n");
 		return 1;
 	}
 
-	struct instrument* instr = instrument_new("res/instrument/test/graphic.png");
+	struct instrument* instr1 = instrument_new("res/instrument/test/graphic.png");
+	instrument_set_position(instr1, 0, 0);
+
+	struct instrument* instr2 = instrument_new("res/instrument/test/graphic.png");
+	instrument_set_position(instr2, -150, 0);
 
 	while(!event_has_signaled_quit()) {
 		renderer_iteration();

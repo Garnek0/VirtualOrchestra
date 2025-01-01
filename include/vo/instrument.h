@@ -31,5 +31,6 @@ struct instrument {
 };
 
 struct instrument* instrument_new(char* graphicPath);
-void instrument_destroy(struct instrument* obj);
+void instrument_set_position(struct instrument* instr, int x, int y);
+void instrument_destroy(struct instrument* instr);
 void instrument_render_all();

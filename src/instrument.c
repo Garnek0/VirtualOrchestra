@@ -24,46 +24,9 @@
 #include <vo/instrument.h>
 #include <vo/debug.h>
 #include <vo/renderer.h>
+#include <vo/list.h>
 
-struct __instrument_node {
-	struct instrument* instr;
-	
-	struct __instrument_node* next;
-};
-struct __instrument_node* instrumentListHead;
-struct __instrument_node* instrumentListTail;
-
-static void __instrument_list_add(struct instrument* instr) {
-	struct __instrument_node* newNode = (struct __instrument_node*)malloc(sizeof(struct __instrument_node));
-	memset((void*)newNode, 0, sizeof(struct __instrument_node));
-
-	newNode->instr = instr;
-
-	if (!instrumentListHead)
-		instrumentListHead = newNode;
-	else
-		instrumentListTail->next = newNode;
-
-	instrumentListTail = newNode;
-}
-
-static void __instrument_list_remove(struct instrument* instr) {
-	struct __instrument_node* prev = NULL;
-
-	for (struct __instrument_node* i = instrumentListHead; i; i = i->next) {
-		if (i->instr == instr) {
-			if (i == instrumentListHead) {
-				instrumentListHead = i->next;
-			} else {
-				prev->next = i->next;
-				if (i == instrumentListTail)
-					instrumentListTail = prev;
-			}
-			
-		}
-		prev = i;
-	}
-}
+struct list* instrumentList;
 
 static int __instrument_gen_id(){
     static int id = 0;
@@ -99,13 +62,21 @@ struct instrument* instrument_new(char* graphicPath) {
 		goto fail;
 	}	
 
-	__instrument_list_add(newInstr);
+	if (instrumentList == NULL)
+		instrumentList = list_create();
+
+	list_insert(instrumentList, (void*)newInstr);
 
 	return newInstr;
 
 fail:
 	free((void*)newInstr);
 	return NULL;
+}
+
+void instrument_set_position(struct instrument* instr, int x, int y) {
+	instr->x = x;
+	instr->y = y;
 }
 
 void instrument_destroy(struct instrument* instr) {
@@ -118,7 +89,7 @@ void instrument_destroy(struct instrument* instr) {
 	
 	renderer_fini_instrument(instr);
 
-	__instrument_list_remove(instr);
+	list_remove(instrumentList, (void*)instr);
 
 	free((void*)instr);
 }
@@ -128,6 +99,7 @@ void instrument_destroy(struct instrument* instr) {
 // this translation unit. Yeah, bad design, i know. This will
 // probably be fixed in the future, though.
 void instrument_render_all() {
-	for (struct __instrument_node* i = instrumentListHead; i; i = i->next)
-		renderer_render_instrument(i->instr, 0, 0);
+	list_foreach(node, instrumentList) {
+		renderer_render_instrument((struct instrument*)node->data);
+	}	
 }
