@@ -29,10 +29,26 @@ struct keyboard_handler {
 	void (*handler)(void);
 };
 
+struct mouse_wheel_handler {
+	void (*handler)(int x, int y, float preciseX, float preciseY);
+};
+
+struct mouse_handler {
+	Uint32 button;
+	void (*handler)(int relX, int relY);
+};
+
 int event_init();
 void event_iteration();
 
 struct keyboard_handler* event_add_keyboard_handler(SDL_Keycode keycode, SDL_Keymod mod, void (*handler)(void));
 void event_remove_keyboard_handler(struct keyboard_handler* kh);
 
+struct mouse_wheel_handler* event_add_mouse_wheel_handler(void (*handler)(int, int, float, float));
+void event_remove_mouse_wheel_handler(struct mouse_wheel_handler* mwh);
+
+struct mouse_handler* event_add_mouse_handler(Uint32 button, void (*handler)(int, int));
+void event_remove_mouse_handler(struct mouse_handler* mh);
+
 bool event_has_signaled_quit();
+void event_get_mouse_position(int* x, int* y);

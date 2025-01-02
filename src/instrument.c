@@ -76,7 +76,7 @@ fail:
 	return NULL;
 }
 
-void instrument_set_position(struct instrument* instr, int x, int y) {
+void instrument_set_position(struct instrument* instr, float x, float y) {
 	instr->x = x;
 	instr->y = y;
 }

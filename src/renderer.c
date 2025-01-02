@@ -34,8 +34,23 @@ struct renderer_instr_data {
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 
-static int cameraX = 0;
-static int cameraY = 0;
+static float zoomScale = 1.0;
+
+// Scene 0, 0 - Screen 0, 0 offset
+static float screenOffsetY;
+static float screenOffsetX;
+
+// Convert screen coordinates to scene coordinates
+void renderer_screen_to_scene(int screenX, int screenY, float* sceneX, float* sceneY) {
+	*sceneX = (float)(screenX) / zoomScale + screenOffsetX;
+	*sceneY = (float)(screenY) / zoomScale + screenOffsetY;
+}
+
+// ... The other way around
+void renderer_scene_to_screen(float sceneX, float sceneY, int* screenX, int* screenY) {
+	*screenX = (int)((sceneX - screenOffsetX) * zoomScale);
+	*screenY = (int)((sceneY - screenOffsetY) * zoomScale);
+}
 
 int renderer_init() {
 	char* windowTitle = malloc(50);
@@ -71,7 +86,7 @@ int renderer_init() {
 		return -1;
 	}
 
-	// Center the camera to point at (or roughly at) 0, 0
+	// Get the default screen offset values
 
 	int rendererOutputWidth, rendererOutputHeight;
 
@@ -80,15 +95,17 @@ int renderer_init() {
 		return -1;
 	}
 
-	cameraX = -(rendererOutputWidth/2);
-	cameraY = -(rendererOutputHeight/2);
+	screenOffsetX = -rendererOutputWidth/2.0;
+	screenOffsetY = -rendererOutputHeight/2.0;
 
-	// Register the camera keyboard handlers
+	// Register handlers
 	
-	event_add_keyboard_handler(SDLK_UP, KMOD_NONE, renderer_camera_handler_up);
-	event_add_keyboard_handler(SDLK_DOWN, KMOD_NONE, renderer_camera_handler_down);
-	event_add_keyboard_handler(SDLK_RIGHT, KMOD_NONE, renderer_camera_handler_right);
-	event_add_keyboard_handler(SDLK_LEFT, KMOD_NONE, renderer_camera_handler_left);
+	event_add_keyboard_handler(SDLK_UP, KMOD_NONE, renderer_keyboard_pan_up);
+	event_add_keyboard_handler(SDLK_DOWN, KMOD_NONE, renderer_keyboard_pan_down);
+	event_add_keyboard_handler(SDLK_RIGHT, KMOD_NONE, renderer_keyboard_pan_right);
+	event_add_keyboard_handler(SDLK_LEFT, KMOD_NONE, renderer_keyboard_pan_left);
+	event_add_mouse_wheel_handler(renderer_mouse_wheel_zoom);
+	event_add_mouse_handler(SDL_BUTTON_MMASK, renderer_mouse_pan);
 
 	// NOTE: Meh, this good enough for testing i guess. PNG may not be the best option 
 	// for what i'm trying to do... A vector-based format would be way better.
@@ -138,10 +155,12 @@ void renderer_render_instrument(struct instrument* instr) {
 
 	SDL_Rect rect;
 
-	rect.x = instr->x - cameraX;
-	rect.y = instr->y - cameraY;
+	renderer_scene_to_screen(instr->x, instr->y, &rect.x, &rect.y);
 
 	SDL_QueryTexture(rendererData->loadedGraphic, NULL, NULL, &rect.w, &rect.h);
+
+	rect.w *= zoomScale;
+	rect.h *= zoomScale;
 
 	SDL_RenderCopy(renderer, rendererData->loadedGraphic, NULL, &rect);
 }
@@ -164,28 +183,58 @@ void renderer_iteration() {
 	SDL_RenderClear(renderer);
 }
 
-void renderer_camera_get_position(int* x, int* y) {
-	*x = cameraX;
-	*y = cameraY;
+void renderer_get_screen_offset(float* x, float* y) {
+	*x = screenOffsetX;
+	*y = screenOffsetY;
 }
 
-void renderer_camera_set_position(int x, int y) {
-	cameraX = x;
-	cameraY = y;
+void renderer_set_screen_offset(float x, float y) {
+	screenOffsetX = x;
+	screenOffsetY = y;
 }
 
-void renderer_camera_handler_up() {
-	cameraY -= 10;
+void renderer_keyboard_pan_up() {
+	screenOffsetY -= 10 / zoomScale;
 }
 
-void renderer_camera_handler_down() {
-	cameraY += 10;
+void renderer_keyboard_pan_down() {
+	screenOffsetY += 10 / zoomScale;
 }
 
-void renderer_camera_handler_right() {
-	cameraX += 10;
+void renderer_keyboard_pan_right() {
+	screenOffsetX += 10 / zoomScale;
 }
 
-void renderer_camera_handler_left() {
-	cameraX -= 10;
+void renderer_keyboard_pan_left() {
+	screenOffsetX -= 10 / zoomScale;
+}
+
+void renderer_mouse_wheel_zoom(int x, int y, float preciseX, float preciseY) {
+	int mouseX, mouseY;
+	float mouseSceneX1, mouseSceneY1, mouseSceneX2, mouseSceneY2;
+
+	event_get_mouse_position(&mouseX, &mouseY);
+
+	renderer_screen_to_scene(mouseX, mouseY, &mouseSceneX1, &mouseSceneY1);
+
+	if (preciseY > 0) {
+		zoomScale *= 0.9;
+	} else if (preciseY < 0) {
+		zoomScale *= 1.1;
+	}
+
+	if (zoomScale > 5) 
+		zoomScale = 5;
+	else if (zoomScale < 0.1)
+		zoomScale = 0.1;
+
+	renderer_screen_to_scene(mouseX, mouseY, &mouseSceneX2, &mouseSceneY2);
+
+	screenOffsetX += (mouseSceneX1 - mouseSceneX2);
+	screenOffsetY += (mouseSceneY1 - mouseSceneY2);
+}
+
+void renderer_mouse_pan(int relX, int relY) {
+	screenOffsetY -= relY / zoomScale;
+	screenOffsetX -= relX / zoomScale;
 }

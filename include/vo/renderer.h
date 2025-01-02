@@ -22,6 +22,9 @@
 
 #include <vo/instrument.h>
 
+void renderer_screen_to_scene(int screenX, int screenY, float* sceneX, float* sceneY);
+void renderer_scene_to_screen(float sceneX, float sceneY, int* screenX, int* screenY);
+
 int renderer_init();
 void renderer_fini();
 void renderer_iteration();
@@ -29,9 +32,11 @@ int renderer_init_instrument(struct instrument* instr);
 void renderer_fini_instrument(struct instrument* instr);
 void renderer_render_instrument(struct instrument* instr);
 
-void renderer_camera_get_position(int* x, int* y);
-void renderer_camera_set_position(int x, int y);
-void renderer_camera_handler_up();
-void renderer_camera_handler_down();
-void renderer_camera_handler_right();
-void renderer_camera_handler_left();
+void renderer_get_screen_offset(float* x, float* y);
+void renderer_set_screen_offset(float x, float y);
+void renderer_keyboard_pan_up();
+void renderer_keyboard_pan_down();
+void renderer_keyboard_pan_right();
+void renderer_keyboard_pan_left();
+void renderer_mouse_wheel_zoom(int x, int y, float preciseX, float preciseY);
+void renderer_mouse_pan(int relX, int relY);

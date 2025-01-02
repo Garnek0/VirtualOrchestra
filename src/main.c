@@ -51,10 +51,10 @@ int main() {
 	}
 
 	struct instrument* instr1 = instrument_new("res/instrument/test/graphic.png");
-	instrument_set_position(instr1, 0, 0);
+	instrument_set_position(instr1, 0.0, 0.0);
 
 	struct instrument* instr2 = instrument_new("res/instrument/test/graphic.png");
-	instrument_set_position(instr2, -150, 0);
+	instrument_set_position(instr2, -150.0, 0.0);
 
 	while(!event_has_signaled_quit()) {
 		renderer_iteration();

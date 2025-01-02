@@ -25,7 +25,7 @@
 struct instrument {
 	int id; // Instrument ID
 
-	int x, y; // Base coordinates
+	float x, y; // Base coordinates
 	
 	char* graphic; // Instrument graphic
 	
@@ -35,7 +35,7 @@ struct instrument {
 int instrument_init();
 
 struct instrument* instrument_new(char* graphicPath);
-void instrument_set_position(struct instrument* instr, int x, int y);
+void instrument_set_position(struct instrument* instr, float x, float y);
 void instrument_destroy(struct instrument* instr);
 
 struct list* instrument_get_list();
