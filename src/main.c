@@ -56,9 +56,21 @@ int main() {
 	struct instrument* instr2 = instrument_new("res/instrument/test/graphic.png");
 	instrument_set_position(instr2, -150.0, 0.0);
 
+	unsigned int time1, time2;
+	double deltatime;
+	time2 = SDL_GetTicks();
+
 	while(!event_has_signaled_quit()) {
-		renderer_iteration();
-		event_iteration();
+		time1 = SDL_GetTicks();
+		deltatime = time1 - time2;
+
+		// Cap simulation at ~60 iterations/second
+		if (deltatime > 1000/60.0) {
+			time2 = time1;
+
+			renderer_iteration();
+			event_iteration();
+		}
 	}
 
 	renderer_fini();
