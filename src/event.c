@@ -49,8 +49,9 @@ void event_iteration() {
 			case SDL_QUIT:
 				quitSignaled = true;
 				break;
-			// Check for mouse wheel events. If any of those events happened, call every
-			// registered mouse wheel event callback.
+			// Check for mouse wheel events. If there is a mouse wheel
+			// event in the event queue, call every registered mouse 
+			// wheel event callback.
 			case SDL_MOUSEWHEEL:
 				if (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
 					event.wheel.x = -event.wheel.x;
