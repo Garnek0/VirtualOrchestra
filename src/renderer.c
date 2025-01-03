@@ -40,7 +40,9 @@ static float zoomScale = 1.0;
 static float screenOffsetY;
 static float screenOffsetX;
 
-// Convert screen coordinates to scene coordinates
+// Convert screen coordinates to scene coordinates. The "scene" is the world
+// in which our instruments (and everything else that can be seen by the user) exist.
+// This is pretty similar to how Unity Engine calls its levels/worlds "scenes".
 void renderer_screen_to_scene(int screenX, int screenY, float* sceneX, float* sceneY) {
 	*sceneX = (float)(screenX) / zoomScale + screenOffsetX;
 	*sceneY = (float)(screenY) / zoomScale + screenOffsetY;
