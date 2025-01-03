@@ -18,14 +18,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <SDL2/SDL.h>
-
 #include <vo/ver.h>
 #include <vo/debug.h>
 #include <vo/renderer.h>
 #include <vo/event.h>
 #include <vo/instrument.h>
+
+#include <stdio.h>
+#include <SDL2/SDL.h>
 
 int main() {
 	printf("Virtual Orchestra %d.%d.%d by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
@@ -73,7 +73,6 @@ int main() {
 		}
 	}
 
-	renderer_fini();
 	SDL_Quit();
 
 	return 0;

@@ -18,12 +18,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <vo/instrument.h>
 #include <vo/debug.h>
 #include <vo/renderer.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 struct list* instrumentList;
 
@@ -89,7 +90,7 @@ void instrument_destroy(struct instrument* instr) {
 
 	// Tell the renderer to deallocate its things for this instrument.
 	
-	renderer_fini_instrument(instr);
+	renderer_free_instrument(instr);
 
 	list_remove(instrumentList, (void*)instr);
 

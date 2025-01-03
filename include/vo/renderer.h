@@ -22,14 +22,13 @@
 
 #include <vo/instrument.h>
 
-void renderer_screen_to_scene(int screenX, int screenY, float* sceneX, float* sceneY);
-void renderer_scene_to_screen(float sceneX, float sceneY, int* screenX, int* screenY);
+void renderer_coord_screen_to_stage(int screenX, int screenY, float* stageX, float* stageY);
+void renderer_coord_stage_to_screen(float stageX, float stageY, int* screenX, int* screenY);
 
 int renderer_init();
-void renderer_fini();
 void renderer_iteration();
 int renderer_init_instrument(struct instrument* instr);
-void renderer_fini_instrument(struct instrument* instr);
+void renderer_free_instrument(struct instrument* instr);
 void renderer_render_instrument(struct instrument* instr);
 
 void renderer_get_screen_offset(float* x, float* y);

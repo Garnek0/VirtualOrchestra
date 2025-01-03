@@ -23,32 +23,32 @@
 #include <stdbool.h>
 #include <SDL_keycode.h>
 
-struct keyboard_handler {
+struct keyboard_callback {
 	SDL_Keycode key;
 	SDL_Keymod mod;
-	void (*handler)(void);
+	void (*callback)(void);
 };
 
-struct mouse_wheel_handler {
-	void (*handler)(int x, int y, float preciseX, float preciseY);
+struct mouse_wheel_callback {
+	void (*callback)(int x, int y, float preciseX, float preciseY);
 };
 
-struct mouse_handler {
+struct mouse_callback {
 	Uint32 button;
-	void (*handler)(int relX, int relY);
+	void (*callback)(int relX, int relY);
 };
 
 int event_init();
 void event_iteration();
 
-struct keyboard_handler* event_add_keyboard_handler(SDL_Keycode keycode, SDL_Keymod mod, void (*handler)(void));
-void event_remove_keyboard_handler(struct keyboard_handler* kh);
+struct keyboard_callback* event_register_keyboard_callback(SDL_Keycode keycode, SDL_Keymod mod, void (*callback)(void));
+void event_remove_keyboard_callback(struct keyboard_callback* keyboardCallback);
 
-struct mouse_wheel_handler* event_add_mouse_wheel_handler(void (*handler)(int, int, float, float));
-void event_remove_mouse_wheel_handler(struct mouse_wheel_handler* mwh);
+struct mouse_wheel_callback* event_register_mouse_wheel_callback(void (*callback)(int, int, float, float));
+void event_remove_mouse_wheel_callback(struct mouse_wheel_callback* mouseWheelCallback);
 
-struct mouse_handler* event_add_mouse_handler(Uint32 button, void (*handler)(int, int));
-void event_remove_mouse_handler(struct mouse_handler* mh);
+struct mouse_callback* event_register_mouse_callback(Uint32 button, void (*callback)(int, int));
+void event_remove_mouse_callback(struct mouse_callback* mouseCallback);
 
 bool event_has_signaled_quit();
 void event_get_mouse_position(int* x, int* y);

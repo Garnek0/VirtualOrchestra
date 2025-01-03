@@ -19,6 +19,7 @@
  */
 
 #include <vo/debug.h>
+
 #include <stdarg.h>
 #include <stdio.h>
 

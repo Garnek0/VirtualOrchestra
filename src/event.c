@@ -26,22 +26,22 @@
 
 static bool quitSignaled = false;
 
-static struct list* keyboardHandlerList;
-static struct list* mouseWheelHandlerList;
-static struct list* mouseHandlerList;
+static struct list* keyboardCallbackList;
+static struct list* mouseWheelCallbackList;
+static struct list* mouseCallbackList;
 
 int event_init() {
-	keyboardHandlerList = list_create();
-	mouseWheelHandlerList = list_create();
-	mouseHandlerList = list_create();
+	keyboardCallbackList = list_create();
+	mouseWheelCallbackList = list_create();
+	mouseCallbackList = list_create();
 
 	return 0;
 }
 
 void event_iteration() {
-	struct keyboard_handler* keyboardHandler;
-	struct mouse_wheel_handler* mouseWheelHandler;
-	struct mouse_handler* mouseHandler;
+	struct keyboard_callback* keyboardCallback;
+	struct mouse_wheel_callback* mouseWheelCallback;
+	struct mouse_callback* mouseCallback;
 
 	SDL_Event event;
 	while(SDL_PollEvent(&event)) {
@@ -49,7 +49,8 @@ void event_iteration() {
 			case SDL_QUIT:
 				quitSignaled = true;
 				break;
-			// Check for mouse wheel events
+			// Check for mouse wheel events. If any of those events happened, call every
+			// registered mouse wheel event callback.
 			case SDL_MOUSEWHEEL:
 				if (event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED) {
 					event.wheel.x = -event.wheel.x;
@@ -58,10 +59,10 @@ void event_iteration() {
 					event.wheel.preciseY = -event.wheel.preciseY;
 				}
 
-				list_foreach(node, mouseWheelHandlerList) {
-					mouseWheelHandler = (struct mouse_wheel_handler*)node->data;
+				list_foreach(node, mouseWheelCallbackList) {
+					mouseWheelCallback = (struct mouse_wheel_callback*)node->data;
 
-					mouseWheelHandler->handler(event.wheel.x, event.wheel.y, event.wheel.preciseX, event.wheel.preciseY);
+					mouseWheelCallback->callback(event.wheel.x, event.wheel.y, event.wheel.preciseX, event.wheel.preciseY);
 				}	
 				break;
 			default:
@@ -69,77 +70,78 @@ void event_iteration() {
 		}
 	}
 
-	// Check for keyboard events
+	// Check if any keyboard callbacks can be called and call them if thats
+	// the case.
 
 	const Uint8* kbState = SDL_GetKeyboardState(NULL);
 	SDL_Keymod kmState = SDL_GetModState();
 
-	list_foreach(node, keyboardHandlerList) {
-		keyboardHandler = (struct keyboard_handler*)node->data;
+	list_foreach(node, keyboardCallbackList) {
+		keyboardCallback = (struct keyboard_callback*)node->data;
 
-		if (kbState[SDL_GetScancodeFromKey(keyboardHandler->key)] && ((kmState & keyboardHandler->mod) == keyboardHandler->mod))
-			keyboardHandler->handler();
+		if (kbState[SDL_GetScancodeFromKey(keyboardCallback->key)] && ((kmState & keyboardCallback->mod) == keyboardCallback->mod))
+			keyboardCallback->callback();
 	}
 
-	// Check for mouse events
+	// Do the same thing for the mouse
 	
 	int mouseX, mouseY;
 	Uint32 mState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
-	list_foreach(node, mouseHandlerList) {
-		mouseHandler = (struct mouse_handler*)node->data;
+	list_foreach(node, mouseCallbackList) {
+		mouseCallback = (struct mouse_callback*)node->data;
 
-		if ((mState & mouseHandler->button) == mouseHandler->button)
-			mouseHandler->handler(mouseX, mouseY);
+		if ((mState & mouseCallback->button) == mouseCallback->button)
+			mouseCallback->callback(mouseX, mouseY);
 	}
 }
 
-struct keyboard_handler* event_add_keyboard_handler(SDL_Keycode keycode, SDL_Keymod mod, void (*handler)(void)) {
-	struct keyboard_handler* kh = malloc(sizeof(struct keyboard_handler));
-	kh->key = keycode;
-	kh->mod = mod;
-	kh->handler = handler;
+struct keyboard_callback* event_register_keyboard_callback(SDL_Keycode keycode, SDL_Keymod mod, void (*callback)(void)) {
+	struct keyboard_callback* keyboardCallback = malloc(sizeof(struct keyboard_callback));
+	keyboardCallback->key = keycode;
+	keyboardCallback->mod = mod;
+	keyboardCallback->callback = callback;
 
-	list_insert(keyboardHandlerList, (void*)kh);
+	list_insert(keyboardCallbackList, (void*)keyboardCallback);
 
-	return kh;
+	return keyboardCallback;
 }
 
-void event_remove_keyboard_handler(struct keyboard_handler* kh) {
-	list_remove(keyboardHandlerList, (void*)kh);
+void event_remove_keyboard_callback(struct keyboard_callback* keyboardCallback) {
+	list_remove(keyboardCallbackList, (void*)keyboardCallback);
 
-	free((void*)kh);
+	free((void*)keyboardCallback);
 }
 
-struct mouse_wheel_handler* event_add_mouse_wheel_handler(void (*handler)(int, int, float, float)) {
-	struct mouse_wheel_handler* mwh = malloc(sizeof(struct mouse_wheel_handler));
-	mwh->handler = handler;
+struct mouse_wheel_callback* event_register_mouse_wheel_callback(void (*callback)(int, int, float, float)) {
+	struct mouse_wheel_callback* mouseWheelCallback = malloc(sizeof(struct mouse_wheel_callback));
+	mouseWheelCallback->callback = callback;
 
-	list_insert(mouseWheelHandlerList, (void*)mwh);
+	list_insert(mouseWheelCallbackList, (void*)mouseWheelCallback);
 
-	return mwh;
+	return mouseWheelCallback;
 }
 
-void event_remove_mouse_wheel_handler(struct mouse_wheel_handler* mwh) {
-	list_remove(mouseWheelHandlerList, (void*)mwh);
+void event_remove_mouse_wheel_callback(struct mouse_wheel_callback* mouseWheelCallback) {
+	list_remove(mouseWheelCallbackList, (void*)mouseWheelCallback);
 
-	free((void*)mwh);
+	free((void*)mouseWheelCallback);
 }
 
-struct mouse_handler* event_add_mouse_handler(Uint32 button, void (*handler)(int, int)) {
-	struct mouse_handler* mh = malloc(sizeof(struct mouse_handler));
-	mh->button = button;
-	mh->handler = handler;
+struct mouse_callback* event_register_mouse_callback(Uint32 button, void (*callback)(int, int)) {
+	struct mouse_callback* mouseCallback = malloc(sizeof(struct mouse_callback));
+	mouseCallback->button = button;
+	mouseCallback->callback = callback;
 
-	list_insert(mouseHandlerList, (void*)mh);
+	list_insert(mouseCallbackList, (void*)mouseCallback);
 
-	return mh;
+	return mouseCallback;
 }
 
-void event_remove_mouse_handler(struct mouse_handler* mh) {
-	list_remove(mouseHandlerList, (void*)mh);
+void event_remove_mouse_callback(struct mouse_callback* mouseCallback) {
+	list_remove(mouseCallbackList, (void*)mouseCallback);
 
-	free((void*)mh);
+	free((void*)mouseCallback);
 }
 
 bool event_has_signaled_quit() {

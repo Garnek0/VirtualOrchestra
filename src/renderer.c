@@ -36,22 +36,24 @@ static SDL_Renderer* renderer;
 
 static float zoomScale = 1.0;
 
-// Scene 0, 0 - Screen 0, 0 offset
+// Stage 0, 0 - Screen 0, 0 offset. The stage is the
+// "world" where all the instruments are rendered,
+// whereas the screen is... well... the screen.
+// We use these values to determine what part of
+// the stage we need to render.
 static float screenOffsetY;
 static float screenOffsetX;
 
-// Convert screen coordinates to scene coordinates. The "scene" is the world
-// in which our instruments (and everything else that can be seen by the user) exist.
-// This is pretty similar to how Unity Engine calls its levels/worlds "scenes".
-void renderer_screen_to_scene(int screenX, int screenY, float* sceneX, float* sceneY) {
-	*sceneX = (float)(screenX) / zoomScale + screenOffsetX;
-	*sceneY = (float)(screenY) / zoomScale + screenOffsetY;
+// Convert screen coordinates to stage coordinates. 
+void renderer_coord_screen_to_stage(int screenX, int screenY, float* stageX, float* stageY) {
+	*stageX = (float)(screenX) / zoomScale + screenOffsetX;
+	*stageY = (float)(screenY) / zoomScale + screenOffsetY;
 }
 
 // ... The other way around
-void renderer_scene_to_screen(float sceneX, float sceneY, int* screenX, int* screenY) {
-	*screenX = (int)((sceneX - screenOffsetX) * zoomScale);
-	*screenY = (int)((sceneY - screenOffsetY) * zoomScale);
+void renderer_coord_stage_to_screen(float stageX, float stageY, int* screenX, int* screenY) {
+	*screenX = (int)((stageX - screenOffsetX) * zoomScale);
+	*screenY = (int)((stageY - screenOffsetY) * zoomScale);
 }
 
 int renderer_init() {
@@ -97,19 +99,18 @@ int renderer_init() {
 		return -1;
 	}
 
-	screenOffsetX = -rendererOutputWidth/2.0;
-	screenOffsetY = -rendererOutputHeight/2.0;
+	renderer_set_screen_offset(-(rendererOutputWidth/2.0), -(rendererOutputHeight/2.0));
 
-	// Register handlers
+	// Register callbacks
 	
-	event_add_keyboard_handler(SDLK_UP, KMOD_NONE, renderer_keyboard_pan_up);
-	event_add_keyboard_handler(SDLK_DOWN, KMOD_NONE, renderer_keyboard_pan_down);
-	event_add_keyboard_handler(SDLK_RIGHT, KMOD_NONE, renderer_keyboard_pan_right);
-	event_add_keyboard_handler(SDLK_LEFT, KMOD_NONE, renderer_keyboard_pan_left);
-	event_add_mouse_wheel_handler(renderer_mouse_wheel_zoom);
-	event_add_mouse_handler(SDL_BUTTON_MMASK, renderer_mouse_pan);
+	event_register_keyboard_callback(SDLK_UP, KMOD_NONE, renderer_keyboard_pan_up);
+	event_register_keyboard_callback(SDLK_DOWN, KMOD_NONE, renderer_keyboard_pan_down);
+	event_register_keyboard_callback(SDLK_RIGHT, KMOD_NONE, renderer_keyboard_pan_right);
+	event_register_keyboard_callback(SDLK_LEFT, KMOD_NONE, renderer_keyboard_pan_left);
+	event_register_mouse_wheel_callback(renderer_mouse_wheel_zoom);
+	event_register_mouse_callback(SDL_BUTTON_MMASK, renderer_mouse_pan);
 
-	// NOTE: Meh, this good enough for testing i guess. PNG may not be the best option 
+	// NOTE: Meh, this is good enough for testing i guess. PNG may not be the best option 
 	// for what i'm trying to do... A vector-based format would be way better.
 	if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
 		debug_log(LOGLEVEL_FATAL, "Renderer: SDL_image init failed: %s\n", IMG_GetError());
@@ -143,7 +144,7 @@ int renderer_init_instrument(struct instrument* instr) {
 	return 0;
 }
 
-void renderer_fini_instrument(struct instrument* instr) {
+void renderer_free_instrument(struct instrument* instr) {
 	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)instr->rendererData;
 
 	SDL_DestroyTexture(rendererData->loadedGraphic);
@@ -157,7 +158,7 @@ void renderer_render_instrument(struct instrument* instr) {
 
 	SDL_Rect rect;
 
-	renderer_scene_to_screen(instr->x, instr->y, &rect.x, &rect.y);
+	renderer_coord_stage_to_screen(instr->x, instr->y, &rect.x, &rect.y);
 
 	SDL_QueryTexture(rendererData->loadedGraphic, NULL, NULL, &rect.w, &rect.h);
 
@@ -165,11 +166,6 @@ void renderer_render_instrument(struct instrument* instr) {
 	rect.h *= zoomScale;
 
 	SDL_RenderCopy(renderer, rendererData->loadedGraphic, NULL, &rect);
-}
-
-void renderer_fini() {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
 }
 
 void renderer_iteration() {
@@ -213,11 +209,11 @@ void renderer_keyboard_pan_left() {
 
 void renderer_mouse_wheel_zoom(int x, int y, float preciseX, float preciseY) {
 	int mouseX, mouseY;
-	float mouseSceneX1, mouseSceneY1, mouseSceneX2, mouseSceneY2;
+	float mouseStageX1, mouseStageY1, mouseStageX2, mouseStageY2;
 
 	event_get_mouse_position(&mouseX, &mouseY);
 
-	renderer_screen_to_scene(mouseX, mouseY, &mouseSceneX1, &mouseSceneY1);
+	renderer_coord_screen_to_stage(mouseX, mouseY, &mouseStageX1, &mouseStageY1);
 
 	if (preciseY > 0) {
 		zoomScale *= 0.9;
@@ -230,10 +226,10 @@ void renderer_mouse_wheel_zoom(int x, int y, float preciseX, float preciseY) {
 	else if (zoomScale < 0.1)
 		zoomScale = 0.1;
 
-	renderer_screen_to_scene(mouseX, mouseY, &mouseSceneX2, &mouseSceneY2);
+	renderer_coord_screen_to_stage(mouseX, mouseY, &mouseStageX2, &mouseStageY2);
 
-	screenOffsetX += (mouseSceneX1 - mouseSceneX2);
-	screenOffsetY += (mouseSceneY1 - mouseSceneY2);
+	screenOffsetX += (mouseStageX1 - mouseStageX2);
+	screenOffsetY += (mouseStageY1 - mouseStageY2);
 }
 
 void renderer_mouse_pan(int relX, int relY) {
