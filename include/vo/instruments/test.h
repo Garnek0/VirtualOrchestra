@@ -20,24 +20,6 @@
 
 #pragma once
 
-#include <vo/list.h>
+#include <vo/instrument.h>
 
-struct instrument {
-	int id; // Instrument ID
-
-	float x, y; // Base coordinates
-	
-	char* graphic; // Instrument graphic
-	
-	int (*init)(struct instrument* instr); // Instrument init function
-	
-	void* rendererData; // Renderer private data
-};
-
-int instrument_init();
-
-struct instrument* instrument_new(char* graphicPath, int (*init)(struct instrument*));
-void instrument_set_position(struct instrument* instr, float x, float y);
-void instrument_destroy(struct instrument* instr);
-
-struct list* instrument_get_list();
+int test_init(struct instrument* instr);

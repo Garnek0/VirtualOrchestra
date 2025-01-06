@@ -39,7 +39,7 @@ int instrument_init() {
 	return 0;
 }
 
-struct instrument* instrument_new(char* graphicPath) {
+struct instrument* instrument_new(char* graphicPath, int (*init)(struct instrument*)) {
 	struct instrument* newInstr = (struct instrument*)malloc(sizeof(struct instrument));
 	memset((void*)newInstr, 0, sizeof(struct instrument));
 
@@ -60,11 +60,18 @@ struct instrument* instrument_new(char* graphicPath) {
 
 	newInstr->graphic = graphicPath;
 
+	newInstr->init = init;
+
 	// Inform the renderer about this new instrument so that it can
 	// generate its data structure and stuff.
 	
 	if (renderer_init_instrument(newInstr) != 0) {
 		debug_log(LOGLEVEL_ERROR, "Instrument: Renderer initialization for instrument with ID=%d failed.\n", newInstr->id);
+		goto fail;
+	}
+
+	if(newInstr->init(newInstr) != 0) {
+		debug_log(LOGLEVEL_ERROR, "Instrument: Could not initialize instrument wiht ID=%d.\n", newInstr->id);
 		goto fail;
 	}
 

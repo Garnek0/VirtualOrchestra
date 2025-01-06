@@ -18,26 +18,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <vo/instruments/test.h>
+#include <vo/debug.h>
 
-#include <vo/list.h>
-
-struct instrument {
-	int id; // Instrument ID
-
-	float x, y; // Base coordinates
-	
-	char* graphic; // Instrument graphic
-	
-	int (*init)(struct instrument* instr); // Instrument init function
-	
-	void* rendererData; // Renderer private data
-};
-
-int instrument_init();
-
-struct instrument* instrument_new(char* graphicPath, int (*init)(struct instrument*));
-void instrument_set_position(struct instrument* instr, float x, float y);
-void instrument_destroy(struct instrument* instr);
-
-struct list* instrument_get_list();
+int test_init(struct instrument* instr) {
+	debug_log(LOGLEVEL_DEBUG, "Test Instrument Initialized!\n");
+	return 0;
+}

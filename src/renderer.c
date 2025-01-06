@@ -34,7 +34,7 @@ struct renderer_instr_data {
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 
-static float zoomScale = 1.0;
+static float zoomScale = 0.2;
 
 // Stage 0, 0 - Screen 0, 0 offset. The stage is the
 // "world" where all the instruments are rendered,
@@ -99,7 +99,7 @@ int renderer_init() {
 		return -1;
 	}
 
-	renderer_set_screen_offset(-(rendererOutputWidth/2.0), -(rendererOutputHeight/2.0));
+	renderer_set_screen_offset(-(rendererOutputWidth/2.0) / zoomScale, -(rendererOutputHeight/2.0) / zoomScale);
 
 	// Register callbacks
 	
@@ -110,8 +110,6 @@ int renderer_init() {
 	event_register_mouse_wheel_callback(renderer_mouse_wheel_zoom);
 	event_register_mouse_callback(SDL_BUTTON_MMASK, renderer_mouse_pan);
 
-	// NOTE: Meh, this is good enough for testing i guess. PNG may not be the best option 
-	// for what i'm trying to do... A vector-based format would be way better.
 	if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
 		debug_log(LOGLEVEL_FATAL, "Renderer: SDL_image init failed: %s\n", IMG_GetError());
 		return -1;
@@ -223,8 +221,8 @@ void renderer_mouse_wheel_zoom(int x, int y, float preciseX, float preciseY) {
 
 	if (zoomScale > 5) 
 		zoomScale = 5;
-	else if (zoomScale < 0.1)
-		zoomScale = 0.1;
+	else if (zoomScale < 0.01)
+		zoomScale = 0.01;
 
 	renderer_coord_screen_to_stage(mouseX, mouseY, &mouseStageX2, &mouseStageY2);
 

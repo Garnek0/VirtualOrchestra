@@ -24,6 +24,8 @@
 #include <vo/event.h>
 #include <vo/instrument.h>
 
+#include <vo/instruments/test.h>
+
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
@@ -50,11 +52,11 @@ int main() {
 		return 1;
 	}
 
-	struct instrument* instr1 = instrument_new("res/instrument/test/graphic.png");
+	struct instrument* instr1 = instrument_new("res/instrument/test/graphic.png", test_init);
 	instrument_set_position(instr1, 0.0, 0.0);
 
-	struct instrument* instr2 = instrument_new("res/instrument/test/graphic.png");
-	instrument_set_position(instr2, -150.0, 0.0);
+	struct instrument* instr2 = instrument_new("res/instrument/test/graphic.png", test_init);
+	instrument_set_position(instr2, -1000.0, 0.0);
 
 	unsigned int time1, time2;
 	double deltatime;
