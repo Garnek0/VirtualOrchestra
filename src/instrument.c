@@ -39,7 +39,7 @@ int instrument_init() {
 	return 0;
 }
 
-struct instrument* instrument_new(char* graphicPath, int (*init)(struct instrument*)) {
+struct instrument* instrument_new(struct instrument_new_args args) {
 	struct instrument* newInstr = (struct instrument*)malloc(sizeof(struct instrument));
 	memset((void*)newInstr, 0, sizeof(struct instrument));
 
@@ -47,31 +47,18 @@ struct instrument* instrument_new(char* graphicPath, int (*init)(struct instrume
 
 	newInstr->id = __instrument_gen_id();	
 
-	// Make sure the graphic file can be opened
+	// Fill in fields
 
-	FILE* graphicFile = fopen(graphicPath, "r");
+	newInstr->x = args.x;
+	newInstr->y = args.y;
 
-	if (!graphicFile) {
-		debug_log(LOGLEVEL_ERROR, "Instrument: Graphic file \"%s\" for instrument with ID=%d could not be opened. Is the file missing?\n", graphicPath, newInstr->id);
-		goto fail;
-	}
+	newInstr->init = args.init;
+	newInstr->fini = args.fini;
 
-	fclose(graphicFile);
-
-	newInstr->graphic = graphicPath;
-
-	newInstr->init = init;
-
-	// Inform the renderer about this new instrument so that it can
-	// generate its data structure and stuff.
-	
-	if (renderer_init_instrument(newInstr) != 0) {
-		debug_log(LOGLEVEL_ERROR, "Instrument: Renderer initialization for instrument with ID=%d failed.\n", newInstr->id);
-		goto fail;
-	}
+	newInstr->maxTexturesBeforeRealloc = 0;
 
 	if(newInstr->init(newInstr) != 0) {
-		debug_log(LOGLEVEL_ERROR, "Instrument: Could not initialize instrument wiht ID=%d.\n", newInstr->id);
+		debug_log(LOGLEVEL_ERROR, "Instrument: Could not initialize instrument with ID=%d.\n", newInstr->id);
 		goto fail;
 	}
 
@@ -95,9 +82,12 @@ void instrument_destroy(struct instrument* instr) {
 		return;
 	}
 
-	// Tell the renderer to deallocate its things for this instrument.
+	// Tell the renderer to deallocate all textures and texture arrays for this instrument.
 	
-	renderer_free_instrument(instr);
+	renderer_free_instrument_textures(instr);
+
+	if(instr->fini(instr) != 0)
+		debug_log(LOGLEVEL_ERROR, "Instrument: Could not properly destroy instrument with ID=%d.\n", instr->id);
 
 	list_remove(instrumentList, (void*)instr);
 

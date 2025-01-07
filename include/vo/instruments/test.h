@@ -23,3 +23,4 @@
 #include <vo/instrument.h>
 
 int test_init(struct instrument* instr);
+int test_fini(struct instrument* instr);

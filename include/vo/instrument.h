@@ -20,23 +20,45 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <vo/list.h>
+#include <SDL2/SDL.h>
 
 struct instrument {
 	int id; // Instrument ID
 
 	float x, y; // Base coordinates
 	
-	char* graphic; // Instrument graphic
-	
 	int (*init)(struct instrument* instr); // Instrument init function
+	int (*fini)(struct instrument* instr); // Instrument fini function
+
+	// Max number of textures that can be loaded before the textures and
+	// textureDraw arrays are reallocated and their size doubled. This
+	// field only exists so that the renderer can keep track of when to
+	// do said reallocations.
+	int maxTexturesBeforeRealloc;
+	
+	int textureCount;
+	SDL_Texture** textures;
+
+	// This tells the renderer which textures in the textures array to draw.
+	// For example, if textureDraw[3] = false, then textures[3] will not
+	// be drawn. By default, after a texture is loaded, its corresponding
+	// textureDraw field is set to true.
+	bool* textureDraw;
 	
 	void* rendererData; // Renderer private data
 };
 
+struct instrument_new_args {
+	float x, y;
+	int (*init)(struct instrument* instr);
+	int (*fini)(struct instrument* instr);
+};
+
 int instrument_init();
 
-struct instrument* instrument_new(char* graphicPath, int (*init)(struct instrument*));
+struct instrument* instrument_new(struct instrument_new_args args);
 void instrument_set_position(struct instrument* instr, float x, float y);
 void instrument_destroy(struct instrument* instr);
 

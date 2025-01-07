@@ -52,11 +52,18 @@ int main() {
 		return 1;
 	}
 
-	struct instrument* instr1 = instrument_new("res/instrument/test/graphic.png", test_init);
-	instrument_set_position(instr1, 0.0, 0.0);
+	struct instrument_new_args args;
 
-	struct instrument* instr2 = instrument_new("res/instrument/test/graphic.png", test_init);
-	instrument_set_position(instr2, -1000.0, 0.0);
+	args.init = test_init;
+	args.fini = test_fini;
+
+	args.x = args.y = 0;
+	struct instrument* instr1 = instrument_new(args);
+
+	args.x = -1024;
+	struct instrument* instr2 = instrument_new(args);
+
+	(void)instr1; (void)instr2;
 
 	unsigned int time1, time2;
 	double deltatime;

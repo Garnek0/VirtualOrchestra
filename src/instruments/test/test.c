@@ -20,8 +20,19 @@
 
 #include <vo/instruments/test.h>
 #include <vo/debug.h>
+#include <vo/renderer.h>
 
 int test_init(struct instrument* instr) {
-	debug_log(LOGLEVEL_DEBUG, "Test Instrument Initialized!\n");
+	if (renderer_load_instrument_texture(instr, "res/instrument/test/test.png") < 0) {
+		debug_log(LOGLEVEL_ERROR, "Test Instrument: Failed to load texture! (ID=%d)\n", instr->id);
+		return -1;
+	}
+
+	debug_log(LOGLEVEL_DEBUG, "Test Instrument: Initialized! (ID=%d)\n", instr->id);
+	return 0;
+}
+
+int test_fini(struct instrument* instr) {
+	debug_log(LOGLEVEL_DEBUG, "Test Instrument: Destroyed! (ID=%d)\n", instr->id);
 	return 0;
 }

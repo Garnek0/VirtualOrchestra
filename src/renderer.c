@@ -26,11 +26,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-// Renderer data struct for instruments
-struct renderer_instr_data {
-	SDL_Texture* loadedGraphic;	
-};
-
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 
@@ -118,52 +113,98 @@ int renderer_init() {
 	return 0;
 }
 
-int renderer_init_instrument(struct instrument* instr) {	
-	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)malloc(sizeof(struct renderer_instr_data));
-	memset((void*)rendererData, 0, sizeof(struct renderer_instr_data));
+void renderer_free_instrument_textures(struct instrument* instr) {
+	for (int i = 0; i < instr->textureCount; i++)
+		SDL_DestroyTexture(instr->textures[i]);
 
-	SDL_Surface* graphicSurface = IMG_Load(instr->graphic);
-	if (!graphicSurface) {
-		debug_log(LOGLEVEL_ERROR, "Renderer: Instrument graphic file \"%s\" for instrument with ID=%d could not be loaded: %s\n", instr->graphic, instr->id, IMG_GetError());
-		return -1;
-	}
-
-	rendererData->loadedGraphic = SDL_CreateTextureFromSurface(renderer, graphicSurface);
-
-	SDL_FreeSurface(graphicSurface);
-
-	if (!rendererData->loadedGraphic) {
-		debug_log(LOGLEVEL_ERROR, "Renderer: Could not create texture from surface for instrument with ID=%d: %s\n", instr->id, SDL_GetError());	
-		return -1;
-	}
-
-	instr->rendererData = rendererData;
-
-	return 0;
+	free((void*)instr->textures);
+	free((void*)instr->textureDraw);
 }
 
-void renderer_free_instrument(struct instrument* instr) {
-	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)instr->rendererData;
+int renderer_load_instrument_texture(struct instrument* instr, const char* path) {
+	SDL_Surface* textureSurface = IMG_Load(path);
+	if (!textureSurface) {
+		debug_log(LOGLEVEL_ERROR, "Renderer: Texture file \"%s\" for instrument with ID=%d could not be loaded: %s\n", path, instr->id, IMG_GetError());
+		return -1;
+	}
 
-	SDL_DestroyTexture(rendererData->loadedGraphic);
-	free((void*)rendererData);
+	SDL_Texture* loadedTexture = SDL_CreateTextureFromSurface(renderer, textureSurface);
 
-	instr->rendererData = NULL;
+	if (!loadedTexture) {
+		debug_log(LOGLEVEL_ERROR, "Renderer: Could not create texture from surface for instrument with ID=%d: %s\n", instr->id, SDL_GetError());
+		SDL_FreeSurface(textureSurface);
+		return -1;
+	}
+
+	SDL_FreeSurface(textureSurface);
+
+	if (instr->maxTexturesBeforeRealloc == 0) {
+		instr->maxTexturesBeforeRealloc = 16;
+		instr->textureCount = 0;
+
+		instr->textures = (SDL_Texture**)calloc(16, sizeof(SDL_Texture*));
+		instr->textureDraw = (bool*)calloc(16, sizeof(bool));
+
+		memset((void*)instr->textures, 0, sizeof(SDL_Texture*)*16);
+		memset((void*)instr->textureDraw, 0, sizeof(bool)*16);
+	} else if (instr->maxTexturesBeforeRealloc == instr->textureCount) {
+
+		// Reallocate and double the size of the textures and textureDraw arrays. 
+
+		instr->maxTexturesBeforeRealloc *= 2;
+
+		SDL_Texture** newTexturesArray = (SDL_Texture**)calloc(instr->maxTexturesBeforeRealloc, sizeof(SDL_Texture*));
+		bool* newTextureDrawArray = (bool*)calloc(instr->maxTexturesBeforeRealloc, sizeof(bool));
+
+		memset((void*)newTexturesArray, 0, sizeof(SDL_Texture*)*instr->maxTexturesBeforeRealloc);
+		memset((void*)newTextureDrawArray, 0, sizeof(bool)*instr->maxTexturesBeforeRealloc);
+
+		memcpy((void*)newTexturesArray, (void*)instr->textures, sizeof(SDL_Texture*)*(instr->maxTexturesBeforeRealloc/2));
+		memcpy((void*)newTextureDrawArray, (void*)instr->textureDraw, sizeof(bool)*(instr->maxTexturesBeforeRealloc/2));
+
+		free((void*)instr->textures);
+		free((void*)instr->textureDraw);
+
+		instr->textures = newTexturesArray;
+		instr->textureDraw = newTextureDrawArray;
+	}
+
+	instr->textures[instr->textureCount] = loadedTexture;
+	instr->textureDraw[instr->textureCount] = true;
+
+	instr->textureCount++;
+
+	return instr->textureCount-1;
+}
+
+// This function should be used for setting the texture draw toggles (as opposed to
+// indexing the textureDraw array in the instrument's code). This is mostly for
+// safety reasons but also to avoid redundant code.
+void renderer_set_instrument_texture_draw(struct instrument* instr, int textureIndex, bool doDraw) {	
+	if ((textureIndex >= instr->textureCount) || textureIndex < 0) {
+		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture draw toggle for instrument with ID=%d.\n", instr->id);
+		return;
+	}
+
+	instr->textureDraw[textureIndex] = doDraw;
 }
 
 void renderer_render_instrument(struct instrument* instr) {
-	struct renderer_instr_data* rendererData = (struct renderer_instr_data*)instr->rendererData;
-
 	SDL_Rect rect;
 
 	renderer_coord_stage_to_screen(instr->x, instr->y, &rect.x, &rect.y);
 
-	SDL_QueryTexture(rendererData->loadedGraphic, NULL, NULL, &rect.w, &rect.h);
+	for (int i = 0; i < instr->textureCount; i++) {
+		if (!instr->textureDraw[i])
+			continue;
 
-	rect.w *= zoomScale;
-	rect.h *= zoomScale;
+		SDL_QueryTexture(instr->textures[i], NULL, NULL, &rect.w, &rect.h);
 
-	SDL_RenderCopy(renderer, rendererData->loadedGraphic, NULL, &rect);
+		rect.w *= zoomScale;
+		rect.h *= zoomScale;
+
+		SDL_RenderCopy(renderer, instr->textures[i], NULL, &rect);
+	}
 }
 
 void renderer_iteration() {
