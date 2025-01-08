@@ -25,6 +25,7 @@
 #include <vo/instrument.h>
 
 #include <vo/instruments/test.h>
+#include <vo/instruments/piano.h>
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
@@ -57,13 +58,17 @@ int main() {
 	args.init = test_init;
 	args.fini = test_fini;
 
-	args.x = args.y = 0;
-	struct instrument* instr1 = instrument_new(args);
+	args.x = -5000;
+	struct instrument* instr = instrument_new(args);
 
-	args.x = -1024;
-	struct instrument* instr2 = instrument_new(args);
+	args.x = 0;
 
-	(void)instr1; (void)instr2;
+	args.init = piano_init;
+	args.fini = piano_fini;
+
+	struct instrument* piano = instrument_new(args);
+
+	(void)instr; (void)piano;
 
 	unsigned int time1, time2;
 	double deltatime;

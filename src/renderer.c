@@ -29,7 +29,7 @@
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 
-static float zoomScale = 0.2;
+static float zoomScale = 1;
 
 // Stage 0, 0 - Screen 0, 0 offset. The stage is the
 // "world" where all the instruments are rendered,
@@ -171,8 +171,8 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 
 		memcpy((void*)newTexturesArray, (void*)instr->textures, sizeof(SDL_Texture*)*(instr->maxTexturesBeforeRealloc/2));
 		memcpy((void*)newTextureDrawArray, (void*)instr->textureDraw, sizeof(bool)*(instr->maxTexturesBeforeRealloc/2));
-		memcpy((void*)newTextureOffsetXArray, (void*)instr->textureOffsetX, sizeof(bool)*(instr->maxTexturesBeforeRealloc/2));
-		memcpy((void*)newTextureOffsetYArray, (void*)instr->textureOffsetY, sizeof(bool)*(instr->maxTexturesBeforeRealloc/2));
+		memcpy((void*)newTextureOffsetXArray, (void*)instr->textureOffsetX, sizeof(int)*(instr->maxTexturesBeforeRealloc/2));
+		memcpy((void*)newTextureOffsetYArray, (void*)instr->textureOffsetY, sizeof(int)*(instr->maxTexturesBeforeRealloc/2));
 
 		free((void*)instr->textures);
 		free((void*)instr->textureDraw);
