@@ -24,7 +24,6 @@
 #include <vo/event.h>
 #include <vo/instrument.h>
 
-#include <vo/instruments/test.h>
 #include <vo/instruments/piano.h>
 
 #include <stdio.h>
@@ -54,21 +53,13 @@ int main() {
 	}
 
 	struct instrument_new_args args;
-
-	args.init = test_init;
-	args.fini = test_fini;
-
-	args.x = -5000;
-	struct instrument* instr = instrument_new(args);
-
-	args.x = 0;
-
+	args.x = args.y = 0;
 	args.init = piano_init;
 	args.fini = piano_fini;
 
 	struct instrument* piano = instrument_new(args);
 
-	(void)instr; (void)piano;
+	(void)piano;
 
 	unsigned int time1, time2;
 	double deltatime;
