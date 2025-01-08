@@ -53,7 +53,7 @@ void renderer_coord_stage_to_screen(float stageX, float stageY, int* screenX, in
 
 int renderer_init() {
 	char* windowTitle = malloc(50);
-	sprintf(windowTitle, "Virtual Orchestra %d.%d.%d", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH);
+	sprintf(windowTitle, "Virtual Orchestra %d.%d.%d-%s", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
 
 	window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_RESIZABLE);
 
@@ -119,9 +119,11 @@ void renderer_free_instrument_textures(struct instrument* instr) {
 
 	free((void*)instr->textures);
 	free((void*)instr->textureDraw);
+	free((void*)instr->textureOffsetX);
+	free((void*)instr->textureOffsetY);
 }
 
-int renderer_load_instrument_texture(struct instrument* instr, const char* path) {
+int renderer_load_instrument_texture(struct instrument* instr, const char* path, int offsetX, int offsetY) {
 	SDL_Surface* textureSurface = IMG_Load(path);
 	if (!textureSurface) {
 		debug_log(LOGLEVEL_ERROR, "Renderer: Texture file \"%s\" for instrument with ID=%d could not be loaded: %s\n", path, instr->id, IMG_GetError());
@@ -144,9 +146,13 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path)
 
 		instr->textures = (SDL_Texture**)calloc(16, sizeof(SDL_Texture*));
 		instr->textureDraw = (bool*)calloc(16, sizeof(bool));
+		instr->textureOffsetX = (int*)calloc(16, sizeof(int));
+		instr->textureOffsetY = (int*)calloc(16, sizeof(int));
 
 		memset((void*)instr->textures, 0, sizeof(SDL_Texture*)*16);
 		memset((void*)instr->textureDraw, 0, sizeof(bool)*16);
+		memset((void*)instr->textureOffsetX, 0, sizeof(int)*16);
+		memset((void*)instr->textureOffsetY, 0, sizeof(int)*16);
 	} else if (instr->maxTexturesBeforeRealloc == instr->textureCount) {
 
 		// Reallocate and double the size of the textures and textureDraw arrays. 
@@ -155,22 +161,34 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path)
 
 		SDL_Texture** newTexturesArray = (SDL_Texture**)calloc(instr->maxTexturesBeforeRealloc, sizeof(SDL_Texture*));
 		bool* newTextureDrawArray = (bool*)calloc(instr->maxTexturesBeforeRealloc, sizeof(bool));
+		int* newTextureOffsetXArray = (int*)calloc(instr->maxTexturesBeforeRealloc, sizeof(int));
+		int* newTextureOffsetYArray = (int*)calloc(instr->maxTexturesBeforeRealloc, sizeof(int));
 
 		memset((void*)newTexturesArray, 0, sizeof(SDL_Texture*)*instr->maxTexturesBeforeRealloc);
 		memset((void*)newTextureDrawArray, 0, sizeof(bool)*instr->maxTexturesBeforeRealloc);
+		memset((void*)newTextureOffsetXArray, 0, sizeof(int)*instr->maxTexturesBeforeRealloc);
+		memset((void*)newTextureOffsetYArray, 0, sizeof(int)*instr->maxTexturesBeforeRealloc);
 
 		memcpy((void*)newTexturesArray, (void*)instr->textures, sizeof(SDL_Texture*)*(instr->maxTexturesBeforeRealloc/2));
 		memcpy((void*)newTextureDrawArray, (void*)instr->textureDraw, sizeof(bool)*(instr->maxTexturesBeforeRealloc/2));
+		memcpy((void*)newTextureOffsetXArray, (void*)instr->textureOffsetX, sizeof(bool)*(instr->maxTexturesBeforeRealloc/2));
+		memcpy((void*)newTextureOffsetYArray, (void*)instr->textureOffsetY, sizeof(bool)*(instr->maxTexturesBeforeRealloc/2));
 
 		free((void*)instr->textures);
 		free((void*)instr->textureDraw);
+		free((void*)instr->textureOffsetX);
+		free((void*)instr->textureOffsetY);
 
 		instr->textures = newTexturesArray;
 		instr->textureDraw = newTextureDrawArray;
+		instr->textureOffsetX = newTextureOffsetXArray;
+		instr->textureOffsetY = newTextureOffsetYArray;
 	}
 
 	instr->textures[instr->textureCount] = loadedTexture;
 	instr->textureDraw[instr->textureCount] = true;
+	instr->textureOffsetX[instr->textureCount] = offsetX;
+	instr->textureOffsetY[instr->textureCount] = offsetY;
 
 	instr->textureCount++;
 
@@ -189,14 +207,24 @@ void renderer_set_instrument_texture_draw(struct instrument* instr, int textureI
 	instr->textureDraw[textureIndex] = doDraw;
 }
 
+void renderer_set_instrument_texture_offset(struct instrument* instr, int textureIndex, int offsetX, int offsetY) {
+	if ((textureIndex >= instr->textureCount) || textureIndex < 0) {
+		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture offset for instrument with ID=%d.\n", instr->id);
+		return;
+	}
+	
+	instr->textureOffsetX[textureIndex] = offsetX;
+	instr->textureOffsetY[textureIndex] = offsetY;
+}
+
 void renderer_render_instrument(struct instrument* instr) {
 	SDL_Rect rect;
-
-	renderer_coord_stage_to_screen(instr->x, instr->y, &rect.x, &rect.y);
 
 	for (int i = 0; i < instr->textureCount; i++) {
 		if (!instr->textureDraw[i])
 			continue;
+
+		renderer_coord_stage_to_screen(instr->x + instr->textureOffsetX[i], instr->y + instr->textureOffsetY[i], &rect.x, &rect.y);
 
 		SDL_QueryTexture(instr->textures[i], NULL, NULL, &rect.w, &rect.h);
 

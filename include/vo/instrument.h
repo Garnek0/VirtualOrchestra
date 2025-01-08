@@ -32,8 +32,8 @@ struct instrument {
 	int (*init)(struct instrument* instr); // Instrument init function
 	int (*fini)(struct instrument* instr); // Instrument fini function
 
-	// Max number of textures that can be loaded before the textures and
-	// textureDraw arrays are reallocated and their size doubled. This
+	// Max number of textures that can be loaded before the textures,
+	// textureDraw etc. arrays are reallocated and their size doubled. This
 	// field only exists so that the renderer can keep track of when to
 	// do said reallocations.
 	int maxTexturesBeforeRealloc;
@@ -46,6 +46,10 @@ struct instrument {
 	// be drawn. By default, after a texture is loaded, its corresponding
 	// textureDraw field is set to true.
 	bool* textureDraw;
+
+	// Texture offsets
+	int* textureOffsetX;
+	int* textureOffsetY;
 	
 	void* rendererData; // Renderer private data
 };

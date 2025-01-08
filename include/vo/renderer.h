@@ -27,8 +27,9 @@ void renderer_coord_stage_to_screen(float stageX, float stageY, int* screenX, in
 
 int renderer_init();
 void renderer_iteration();
-int renderer_load_instrument_texture(struct instrument* instr, const char* path);
+int renderer_load_instrument_texture(struct instrument* instr, const char* path, int offsetX, int offsetY);
 void renderer_set_instrument_texture_draw(struct instrument* instr, int textureIndex, bool doDraw);
+void renderer_set_instrument_texture_offset(struct instrument* instr, int textureIndex, int offsetX, int offsetY);
 void renderer_free_instrument_textures(struct instrument* instr);
 void renderer_render_instrument(struct instrument* instr);
 

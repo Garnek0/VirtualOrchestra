@@ -23,7 +23,7 @@
 #include <vo/renderer.h>
 
 int test_init(struct instrument* instr) {
-	if (renderer_load_instrument_texture(instr, "res/instrument/test/test.png") < 0) {
+	if (renderer_load_instrument_texture(instr, "res/instrument/test/test.png", 0, 0) < 0) {
 		debug_log(LOGLEVEL_ERROR, "Test Instrument: Failed to load texture! (ID=%d)\n", instr->id);
 		return -1;
 	}
