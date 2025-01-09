@@ -22,6 +22,16 @@
 
 #include <vo/instrument.h>
 
+struct texture {
+	SDL_Texture* loadedTexture;
+
+	// This tells the renderer whether to draw this texture or not.
+	bool textureDraw;
+
+	int textureOffsetX;
+	int textureOffsetY;
+};
+
 void renderer_coord_screen_to_stage(int screenX, int screenY, float* stageX, float* stageY);
 void renderer_coord_stage_to_screen(float stageX, float stageY, int* screenX, int* screenY);
 
