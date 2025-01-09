@@ -47,7 +47,7 @@ int piano_init(struct instrument* instr) {
 			return -1;
 		}
 
-		if (renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", i + 139, 0) < 0) {
+		if (renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", i + 140, 0) < 0) {
 			debug_log(LOGLEVEL_ERROR, "Piano: Failed to load black key texture! (ID=%d)\n", instr->id);
 			return -1;
 		}

@@ -53,7 +53,12 @@ void renderer_coord_stage_to_screen(float stageX, float stageY, int* screenX, in
 
 int renderer_init() {
 	char* windowTitle = malloc(50);
+
+#ifndef VO_VER_SNAPSHOT
 	sprintf(windowTitle, "Virtual Orchestra %d.%d.%d-%s", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
+#else
+	sprintf(windowTitle, "Virtual Orchestra %s (snapshot)", VO_VER_STAGE);
+#endif
 
 	window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_RESIZABLE);
 
@@ -290,8 +295,8 @@ void renderer_mouse_wheel_zoom(int x, int y, float preciseX, float preciseY) {
 
 	if (zoomScale > 5) 
 		zoomScale = 5;
-	else if (zoomScale < 0.01)
-		zoomScale = 0.01;
+	else if (zoomScale < 0.8)
+		zoomScale = 0.8;
 
 	renderer_coord_screen_to_stage(mouseX, mouseY, &mouseStageX2, &mouseStageY2);
 

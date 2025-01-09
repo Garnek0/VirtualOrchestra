@@ -25,3 +25,5 @@
 #define VO_VER_PATCH 0
 
 #define VO_VER_STAGE "pre-alpha"
+
+#define VO_VER_SNAPSHOT
