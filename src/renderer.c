@@ -166,9 +166,9 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 	}
 
 	instr->textures[instr->textureCount].loadedTexture = loadedTexture;
-	instr->textures[instr->textureCount].textureDraw = true;
-	instr->textures[instr->textureCount].textureOffsetX = offsetX;
-	instr->textures[instr->textureCount].textureOffsetY = offsetY;
+	instr->textures[instr->textureCount].draw = true;
+	instr->textures[instr->textureCount].offsetX = offsetX;
+	instr->textures[instr->textureCount].offsetY = offsetY;
 
 	instr->textureCount++;
 
@@ -179,32 +179,48 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 // indexing the textureDraw array in the instrument's code). This is mostly for
 // safety reasons but also to avoid redundant code.
 void renderer_set_instrument_texture_draw(struct instrument* instr, int textureIndex, bool doDraw) {	
-	if ((textureIndex >= instr->textureCount) || textureIndex < 0) {
+	if ((textureIndex >= instr->textureCount) || (textureIndex < 0)) {
 		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture draw toggle for instrument with ID=%d.\n", instr->id);
 		return;
 	}
 
-	instr->textures[textureIndex].textureDraw = doDraw;
+	instr->textures[textureIndex].draw = doDraw;
 }
 
+// Same thing but for the texture offset.
 void renderer_set_instrument_texture_offset(struct instrument* instr, int textureIndex, int offsetX, int offsetY) {
-	if ((textureIndex >= instr->textureCount) || textureIndex < 0) {
+	if ((textureIndex >= instr->textureCount) || (textureIndex < 0)) {
 		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture offset for instrument with ID=%d.\n", instr->id);
 		return;
 	}
 	
-	instr->textures[textureIndex].textureOffsetX = offsetX;
-	instr->textures[textureIndex].textureOffsetY = offsetY;
+	instr->textures[textureIndex].offsetX = offsetX;
+	instr->textures[textureIndex].offsetY = offsetY;
+}
+
+// Opacity must be in the 0 - 100 range.
+void renderer_set_instrument_texture_opacity(struct instrument* instr, int textureIndex, int opacity) {
+	if ((textureIndex >= instr->textureCount) || (textureIndex < 0)) {
+		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture offset for instrument with ID=%d.\n", instr->id);
+		return;
+	}
+
+	if ((opacity > 100) || (opacity < 0)) {
+		debug_log(LOGLEVEL_WARN, "Renderer: Invalid texture opacity for instrument with ID=%d.\n", instr->id);
+		return;
+	}
+
+	SDL_SetTextureAlphaMod(instr->textures[textureIndex].loadedTexture, (Uint8)(opacity*2.55));
 }
 
 void renderer_render_instrument(struct instrument* instr) {
 	SDL_Rect rect;
 
 	for (int i = 0; i < instr->textureCount; i++) {
-		if (!instr->textures[i].textureDraw)
+		if (!instr->textures[i].draw)
 			continue;
 
-		renderer_coord_stage_to_screen(instr->x + instr->textures[i].textureOffsetX, instr->y + instr->textures[i].textureOffsetY, &rect.x, &rect.y);
+		renderer_coord_stage_to_screen(instr->x + instr->textures[i].offsetX, instr->y + instr->textures[i].offsetY, &rect.x, &rect.y);
 
 		SDL_QueryTexture(instr->textures[i].loadedTexture, NULL, NULL, &rect.w, &rect.h);
 

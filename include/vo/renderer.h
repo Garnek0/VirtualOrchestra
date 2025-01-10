@@ -26,10 +26,10 @@ struct texture {
 	SDL_Texture* loadedTexture;
 
 	// This tells the renderer whether to draw this texture or not.
-	bool textureDraw;
+	bool draw;
 
-	int textureOffsetX;
-	int textureOffsetY;
+	int offsetX;
+	int offsetY;
 };
 
 void renderer_coord_screen_to_stage(int screenX, int screenY, float* stageX, float* stageY);
@@ -40,6 +40,7 @@ void renderer_iteration();
 int renderer_load_instrument_texture(struct instrument* instr, const char* path, int offsetX, int offsetY);
 void renderer_set_instrument_texture_draw(struct instrument* instr, int textureIndex, bool doDraw);
 void renderer_set_instrument_texture_offset(struct instrument* instr, int textureIndex, int offsetX, int offsetY);
+void renderer_set_instrument_texture_opacity(struct instrument* instr, int textureIndex, int opacity);
 void renderer_free_instrument_textures(struct instrument* instr);
 void renderer_render_instrument(struct instrument* instr);
 
