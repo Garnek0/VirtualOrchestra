@@ -20,9 +20,19 @@
 
 #pragma once
 
-#include <vo/instrument.h>
+#define NOTE_C 1
+#define NOTE_Cs_Db 2
+#define NOTE_D 3
+#define NOTE_Ds_Eb 4
+#define NOTE_E 5
+#define NOTE_F 6
+#define NOTE_Fs_Gb 7
+#define NOTE_G 8
+#define NOTE_Gs_Ab 9
+#define NOTE_A 10
+#define NOTE_As_Bb 11
+#define NOTE_B 12
 
-int piano_init(struct instrument* instr);
-int piano_fini(struct instrument* instr);
-int piano_play_note(struct instrument* instr, int note, int octave);
-int piano_release_note(struct instrument* instr, int note, int octave);
+#define NOTE_IS_NATURAL(x) \
+	((x != NOTE_Cs_Db) && (x != NOTE_Ds_Eb) && \
+	(x != NOTE_Fs_Gb) && (x != NOTE_Gs_Ab) && (x != NOTE_As_Bb))

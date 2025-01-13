@@ -23,11 +23,36 @@
 #include <vo/renderer.h>
 #include <vo/event.h>
 #include <vo/instrument.h>
+#include <vo/note.h>
 
 #include <vo/instruments/piano.h>
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
+
+void test_chord_callback() {
+	struct list* instrumentList = instrument_get_list();
+
+	list_foreach(node, instrumentList) {
+		struct instrument* instr = (struct instrument*)node->data;
+
+		instr->play_note(instr, NOTE_C, 4);
+		instr->play_note(instr, NOTE_E, 4);
+		instr->play_note(instr, NOTE_G, 4);
+	}
+}
+
+void test_chord_release_callback() {
+	struct list* instrumentList = instrument_get_list();
+
+	list_foreach(node, instrumentList) {
+		struct instrument* instr = (struct instrument*)node->data;
+
+		instr->release_note(instr, NOTE_C, 4);
+		instr->release_note(instr, NOTE_E, 4);
+		instr->release_note(instr, NOTE_G, 4);
+	}
+}
 
 int main() {
 	printf("Virtual Orchestra %d.%d.%d-%s by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
@@ -56,10 +81,15 @@ int main() {
 	args.x = args.y = 0;
 	args.init = piano_init;
 	args.fini = piano_fini;
+	args.play_note = piano_play_note;
+	args.release_note = piano_release_note;
 
 	struct instrument* piano = instrument_new(args);
 
 	(void)piano;
+
+	event_register_keyboard_callback(SDLK_c, KMOD_NONE, test_chord_callback);
+	event_register_keyboard_callback(SDLK_r, KMOD_NONE, test_chord_release_callback);
 
 	unsigned int time1, time2;
 	double deltatime;

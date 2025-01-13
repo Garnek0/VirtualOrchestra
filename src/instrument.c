@@ -54,6 +54,8 @@ struct instrument* instrument_new(struct instrument_new_args args) {
 
 	newInstr->init = args.init;
 	newInstr->fini = args.fini;
+	newInstr->play_note = args.play_note;
+	newInstr->release_note = args.release_note;
 
 	newInstr->maxTexturesBeforeRealloc = 0;
 

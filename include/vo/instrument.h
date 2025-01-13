@@ -31,6 +31,8 @@ struct instrument {
 	
 	int (*init)(struct instrument* instr); // Instrument init function
 	int (*fini)(struct instrument* instr); // Instrument fini function
+	int (*play_note)(struct instrument* instr, int note, int octave); // Start playing note
+	int (*release_note)(struct instrument* instr, int note, int octave); // Stop playing note
 
 	// Max number of textures that can be loaded before the texture
 	// array is reallocated as double the size.
@@ -44,6 +46,8 @@ struct instrument_new_args {
 	float x, y;
 	int (*init)(struct instrument* instr);
 	int (*fini)(struct instrument* instr);
+	int (*play_note)(struct instrument* instr, int note, int octave);
+	int (*release_note)(struct instrument* instr, int note, int octave);
 };
 
 int instrument_init();

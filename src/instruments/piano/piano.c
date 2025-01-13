@@ -21,6 +21,10 @@
 #include <vo/instruments/piano.h>
 #include <vo/debug.h>
 #include <vo/renderer.h>
+#include <vo/note.h>
+
+#define PIANO_FIRST_WHITE_KEY_TEXTURE 0
+#define PIANO_FIRST_BLACK_KEY_TEXTURE 36
 
 int piano_init(struct instrument* instr) {
 
@@ -64,5 +68,137 @@ int piano_init(struct instrument* instr) {
 
 int piano_fini(struct instrument* instr) {
 	debug_log(LOGLEVEL_DEBUG, "Piano: Destroyed! (ID=%d)\n", instr->id);
+	return 0;
+}
+
+int piano_play_note(struct instrument* instr, int note, int octave) {
+	if ((octave > 6) && (octave != 6) && (note != NOTE_C))
+		return -1;
+
+	if (octave < 1)
+		return -1;
+
+	int textureIndex = 0;
+
+	if (NOTE_IS_NATURAL(note)) {
+		switch (note) {
+			case NOTE_C:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE;
+				break;
+			case NOTE_D:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 1;
+				break;
+			case NOTE_E:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 2;
+				break;
+			case NOTE_F:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 3;
+				break;
+			case NOTE_G:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 4;
+				break;
+			case NOTE_A:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 5;
+				break;
+			case NOTE_B:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 6;
+				break;
+			default:
+				return -1;	
+		}
+
+		textureIndex += 7*(octave-1);
+	} else {
+		switch (note) {
+			case NOTE_Cs_Db:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE;
+				break;
+			case NOTE_Ds_Eb:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 1;
+				break;
+			case NOTE_Fs_Gb:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 2;
+				break;
+			case NOTE_Gs_Ab:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 3;
+				break;
+			case NOTE_As_Bb:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 4;
+				break;
+			default:
+				return -1;
+		}
+
+		textureIndex += 5*(octave-1);
+	}
+
+	renderer_set_instrument_texture_opacity(instr, textureIndex, 30);
+
+	return 0;
+}
+
+int piano_release_note(struct instrument* instr, int note, int octave) {
+	if ((octave > 6) && (octave != 6) && (note != NOTE_C))
+		return -1;
+
+	if (octave < 1)
+		return -1;
+
+	int textureIndex = 0;
+
+	if (NOTE_IS_NATURAL(note)) {
+		switch (note) {
+			case NOTE_C:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE;
+				break;
+			case NOTE_D:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 1;
+				break;
+			case NOTE_E:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 2;
+				break;
+			case NOTE_F:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 3;
+				break;
+			case NOTE_G:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 4;
+				break;
+			case NOTE_A:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 5;
+				break;
+			case NOTE_B:
+				textureIndex = PIANO_FIRST_WHITE_KEY_TEXTURE + 6;
+				break;
+			default:
+				return -1;	
+		}
+
+		textureIndex += 7*(octave-1);
+	} else {
+		switch (note) {
+			case NOTE_Cs_Db:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE;
+				break;
+			case NOTE_Ds_Eb:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 1;
+				break;
+			case NOTE_Fs_Gb:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 2;
+				break;
+			case NOTE_Gs_Ab:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 3;
+				break;
+			case NOTE_As_Bb:
+				textureIndex = PIANO_FIRST_BLACK_KEY_TEXTURE + 4;
+				break;
+			default:
+				return -1;
+		}
+
+		textureIndex += 5*(octave-1);
+	}
+
+	renderer_set_instrument_texture_opacity(instr, textureIndex, 100);
+
 	return 0;
 }
