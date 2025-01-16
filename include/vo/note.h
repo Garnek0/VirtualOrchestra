@@ -20,18 +20,18 @@
 
 #pragma once
 
-#define NOTE_C 1
-#define NOTE_Cs_Db 2
-#define NOTE_D 3
-#define NOTE_Ds_Eb 4
-#define NOTE_E 5
-#define NOTE_F 6
-#define NOTE_Fs_Gb 7
-#define NOTE_G 8
-#define NOTE_Gs_Ab 9
-#define NOTE_A 10
-#define NOTE_As_Bb 11
-#define NOTE_B 12
+#define NOTE_C 0
+#define NOTE_Cs_Db 1
+#define NOTE_D 2
+#define NOTE_Ds_Eb 3
+#define NOTE_E 4
+#define NOTE_F 5
+#define NOTE_Fs_Gb 6
+#define NOTE_G 7
+#define NOTE_Gs_Ab 8
+#define NOTE_A 9
+#define NOTE_As_Bb 10
+#define NOTE_B 11
 
 #define NOTE_IS_NATURAL(x) \
 	((x != NOTE_Cs_Db) && (x != NOTE_Ds_Eb) && \

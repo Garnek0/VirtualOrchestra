@@ -125,7 +125,7 @@ void renderer_free_instrument_textures(struct instrument* instr) {
 	free((void*)instr->textures);
 }
 
-int renderer_load_instrument_texture(struct instrument* instr, const char* path, int offsetX, int offsetY) {
+int renderer_load_instrument_texture(struct instrument* instr, const char* path, int offsetX, int offsetY, int layer) {
 	SDL_Surface* textureSurface = IMG_Load(path);
 	if (!textureSurface) {
 		debug_log(LOGLEVEL_ERROR, "Renderer: Texture file \"%s\" for instrument with ID=%d could not be loaded: %s\n", path, instr->id, IMG_GetError());
@@ -169,6 +169,7 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 	instr->textures[instr->textureCount].draw = true;
 	instr->textures[instr->textureCount].offsetX = offsetX;
 	instr->textures[instr->textureCount].offsetY = offsetY;
+	instr->textures[instr->textureCount].layer = layer;
 
 	instr->textureCount++;
 
@@ -213,21 +214,46 @@ void renderer_set_instrument_texture_opacity(struct instrument* instr, int textu
 	SDL_SetTextureAlphaMod(instr->textures[textureIndex].loadedTexture, (Uint8)(opacity*2.55));
 }
 
+void renderer_set_instrument_texture_layer(struct instrument* instr, int textureIndex, int layer) {
+	if ((textureIndex >= instr->textureCount) || (textureIndex < 0)) {
+		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture offset for instrument with ID=%d.\n", instr->id);
+		return;
+	}
+
+	instr->textures[textureIndex].layer = layer;
+}
+
 void renderer_render_instrument(struct instrument* instr) {
 	SDL_Rect rect;
 
+	int maxTextureLayer = 0;
+
+	// Find the maximum texture layer
 	for (int i = 0; i < instr->textureCount; i++) {
 		if (!instr->textures[i].draw)
 			continue;
 
-		renderer_coord_stage_to_screen(instr->x + instr->textures[i].offsetX, instr->y + instr->textures[i].offsetY, &rect.x, &rect.y);
+		if (instr->textures[i].layer > maxTextureLayer)
+			maxTextureLayer = instr->textures[i].layer;
+	}
 
-		SDL_QueryTexture(instr->textures[i].loadedTexture, NULL, NULL, &rect.w, &rect.h);
+	for(int i = 0; i <= maxTextureLayer; i++) {
+		for (int j = 0; j < instr->textureCount; j++) {
+			if (!instr->textures[j].draw)
+				continue;
 
-		rect.w *= zoomScale;
-		rect.h *= zoomScale;
+			if(instr->textures[j].layer != i)
+				continue;
 
-		SDL_RenderCopy(renderer, instr->textures[i].loadedTexture, NULL, &rect);
+			renderer_coord_stage_to_screen(instr->x + instr->textures[j].offsetX, instr->y + instr->textures[j].offsetY, &rect.x, &rect.y);
+
+			SDL_QueryTexture(instr->textures[j].loadedTexture, NULL, NULL, &rect.w, &rect.h);
+
+			rect.w *= zoomScale;
+			rect.h *= zoomScale;
+
+			SDL_RenderCopy(renderer, instr->textures[j].loadedTexture, NULL, &rect);
+		}
 	}
 }
 
