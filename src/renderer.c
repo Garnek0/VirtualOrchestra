@@ -32,7 +32,7 @@ static SDL_Renderer* renderer;
 static float zoomScale = 1;
 
 // Stage 0, 0 - Screen 0, 0 offset. The stage is the
-// "world" where all the instruments are rendered,
+// conceptual world in which all the instruments are rendered,
 // whereas the screen is... well... the screen.
 // We use these values to determine what part of
 // the stage we need to render.
@@ -101,7 +101,7 @@ int renderer_init() {
 
 	renderer_set_screen_offset(-(rendererOutputWidth/2.0) / zoomScale, -(rendererOutputHeight/2.0) / zoomScale);
 
-	// Register callbacks
+	// Register control callbacks
 	
 	event_register_keyboard_callback(SDLK_UP, KMOD_NONE, renderer_keyboard_pan_up);
 	event_register_keyboard_callback(SDLK_DOWN, KMOD_NONE, renderer_keyboard_pan_down);
@@ -146,19 +146,19 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 		instr->maxTexturesBeforeRealloc = 16;
 		instr->textureCount = 0;
 
-		instr->textures = (struct texture*)calloc(16, sizeof(struct texture));
-		memset((void*)instr->textures, 0, sizeof(struct texture)*16);
+		instr->textures = (struct renderer_instrument_texture*)calloc(16, sizeof(struct renderer_instrument_texture));
+		memset((void*)instr->textures, 0, sizeof(struct renderer_instrument_texture)*16);
 	} else if (instr->maxTexturesBeforeRealloc == instr->textureCount) {
 
 		// Reallocate and double the size of the textures and textureDraw arrays. 
 
 		instr->maxTexturesBeforeRealloc *= 2;
 
-		struct texture* newTexturesArray = (struct texture*)calloc(instr->maxTexturesBeforeRealloc, sizeof(struct texture));
+		struct renderer_instrument_texture* newTexturesArray = (struct renderer_instrument_texture*)calloc(instr->maxTexturesBeforeRealloc, sizeof(struct renderer_instrument_texture));
 
-		memset((void*)newTexturesArray, 0, sizeof(struct texture)*instr->maxTexturesBeforeRealloc);
+		memset((void*)newTexturesArray, 0, sizeof(struct renderer_instrument_texture)*instr->maxTexturesBeforeRealloc);
 
-		memcpy((void*)newTexturesArray, (void*)instr->textures, sizeof(struct texture)*(instr->maxTexturesBeforeRealloc/2));
+		memcpy((void*)newTexturesArray, (void*)instr->textures, sizeof(struct renderer_instrument_texture)*(instr->maxTexturesBeforeRealloc/2));
 
 		free((void*)instr->textures);
 
@@ -166,7 +166,6 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 	}
 
 	instr->textures[instr->textureCount].loadedTexture = loadedTexture;
-	instr->textures[instr->textureCount].draw = true;
 	instr->textures[instr->textureCount].offsetX = offsetX;
 	instr->textures[instr->textureCount].offsetY = offsetY;
 	instr->textures[instr->textureCount].layer = layer;
@@ -176,19 +175,9 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 	return instr->textureCount-1;
 }
 
-// This function should be used for setting the texture draw toggles (as opposed to
-// indexing the textureDraw array in the instrument's code). This is mostly for
+// This function should be used for setting texture offsets (as opposed to
+// indexing the textures array in the instrument's code). This is mostly for
 // safety reasons but also to avoid redundant code.
-void renderer_set_instrument_texture_draw(struct instrument* instr, int textureIndex, bool doDraw) {	
-	if ((textureIndex >= instr->textureCount) || (textureIndex < 0)) {
-		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture draw toggle for instrument with ID=%d.\n", instr->id);
-		return;
-	}
-
-	instr->textures[textureIndex].draw = doDraw;
-}
-
-// Same thing but for the texture offset.
 void renderer_set_instrument_texture_offset(struct instrument* instr, int textureIndex, int offsetX, int offsetY) {
 	if ((textureIndex >= instr->textureCount) || (textureIndex < 0)) {
 		debug_log(LOGLEVEL_WARN, "Renderer: Attempt to modify out-of-bounds texture offset for instrument with ID=%d.\n", instr->id);
@@ -229,19 +218,12 @@ void renderer_render_instrument(struct instrument* instr) {
 	int maxTextureLayer = 0;
 
 	// Find the maximum texture layer
-	for (int i = 0; i < instr->textureCount; i++) {
-		if (!instr->textures[i].draw)
-			continue;
-
+	for (int i = 0; i < instr->textureCount; i++)
 		if (instr->textures[i].layer > maxTextureLayer)
 			maxTextureLayer = instr->textures[i].layer;
-	}
 
 	for(int i = 0; i <= maxTextureLayer; i++) {
 		for (int j = 0; j < instr->textureCount; j++) {
-			if (!instr->textures[j].draw)
-				continue;
-
 			if(instr->textures[j].layer != i)
 				continue;
 

@@ -24,52 +24,49 @@
 #include <vo/note.h>
 
 int keyTextureIndexes[61];
+int pressedKeyTextureIndexes[61];
 
 int piano_init(struct instrument* instr) {
 
+#define LOAD_WHITE_KEY_TEXTURE(i, x, xoff) \
+	if (((keyTextureIndexes[(i)/217*12 + (x)] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", (xoff), 0, 0)) < 0) || \
+		((pressedKeyTextureIndexes[(i)/217*12 + (x)] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey-pressed.png", (xoff), 0, 1)) < 0)) \
+			goto fail;
+
+#define LOAD_BLACK_KEY_TEXTURE(i, x, xoff) \
+	if (((keyTextureIndexes[(i)/217*12 + (x)] = renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", (xoff), 0, 2)) < 0) || \
+		((pressedKeyTextureIndexes[(i)/217*12 + (x)] = renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey-pressed.png", (xoff), 0, 3)) < 0)) \
+			goto fail;
+	
+	// Load piano key textures
 	for (int i = 0; i < 217 * 5; i+=217) {
-		if ((keyTextureIndexes[i/217*12] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", i, 0, 0)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 1] = renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", i + 14, 0, 1)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 2] =	renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", i + 31, 0, 0)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 3] =	renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", i + 49, 0, 1)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 4] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", i + 62, 0, 0)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 5] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", i + 93, 0, 0)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 6] = renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", i + 107, 0, 1)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 7] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", i + 124, 0, 0)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 8] = renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", i + 140, 0, 1)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 9] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", i + 155, 0, 0)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 10] = renderer_load_instrument_texture(instr, "res/instrument/piano/blackkey.png", i + 173, 0, 1)) < 0)
-			goto fail;
-
-		if ((keyTextureIndexes[i/217*12 + 11] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", i + 186, 0, 0)) < 0)
-			goto fail;
+		LOAD_WHITE_KEY_TEXTURE(i, 0, i + 0);
+		LOAD_BLACK_KEY_TEXTURE(i, 1, i + 14);
+		LOAD_WHITE_KEY_TEXTURE(i, 2, i + 1 * 31);
+		LOAD_BLACK_KEY_TEXTURE(i, 3, i + 49);
+		LOAD_WHITE_KEY_TEXTURE(i, 4, i + 2 * 31);
+		LOAD_WHITE_KEY_TEXTURE(i, 5, i + 3 * 31);
+		LOAD_BLACK_KEY_TEXTURE(i, 6, i + 107);
+		LOAD_WHITE_KEY_TEXTURE(i, 7, i + 4 * 31);
+		LOAD_BLACK_KEY_TEXTURE(i, 8, i + 140);
+		LOAD_WHITE_KEY_TEXTURE(i, 9, i + 5 * 31);
+		LOAD_BLACK_KEY_TEXTURE(i, 10, i + 173);
+		LOAD_WHITE_KEY_TEXTURE(i, 11, i + 6 * 31);	
 	}
 
-	// The last C
-	if ((keyTextureIndexes[60] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", 5 * 217, 0, 0)) < 0)
-		goto fail;
+#undef LOAD_WHITE_KEY_TEXTURE
+#undef LOAD_BLACK_KEY_TEXTURE
 
-	debug_log(LOGLEVEL_DEBUG, "Piano: Initialized! (ID=%d)\n", instr->id);
+	// The last C
+	if (((keyTextureIndexes[60] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey.png", 5*217, 0, 0)) < 0) || \
+		((pressedKeyTextureIndexes[60] = renderer_load_instrument_texture(instr, "res/instrument/piano/whitekey-pressed.png", 5*217, 0, 0)) < 0)) \
+			goto fail;
+
+	// Hide all pressed textures
+	for (int i = 0; i < 61; i++)
+		renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[i], 0);
+
+	debug_log(LOGLEVEL_DEBUG, "Piano: New piano initialized! (ID=%d)\n", instr->id);
 	return 0;
 
 fail:
@@ -78,6 +75,7 @@ fail:
 }
 
 int piano_fini(struct instrument* instr) {
+	// Destroyed!?... Poor piano...
 	debug_log(LOGLEVEL_DEBUG, "Piano: Destroyed! (ID=%d)\n", instr->id);
 	return 0;
 }
@@ -91,7 +89,7 @@ int piano_play_note(struct instrument* instr, int note, int octave) {
 
 	octave -= 2;
 
-	renderer_set_instrument_texture_opacity(instr, keyTextureIndexes[octave*12+note], 30);	
+	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[octave*12+note], 60);	
 
 	return 0;
 }
@@ -105,7 +103,7 @@ int piano_release_note(struct instrument* instr, int note, int octave) {
 
 	octave -= 2;
 
-	renderer_set_instrument_texture_opacity(instr, keyTextureIndexes[octave*12+note], 100);
+	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[octave*12+note], 0);
 
 	return 0;
 }

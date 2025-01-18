@@ -37,7 +37,7 @@ void test_chord_callback() {
 		struct instrument* instr = (struct instrument*)node->data;
 
 		instr->play_note(instr, NOTE_C, 4);
-		instr->play_note(instr, NOTE_E, 4);
+		instr->play_note(instr, NOTE_Ds_Eb, 4);
 		instr->play_note(instr, NOTE_G, 4);
 	}
 }
@@ -49,7 +49,7 @@ void test_chord_release_callback() {
 		struct instrument* instr = (struct instrument*)node->data;
 
 		instr->release_note(instr, NOTE_C, 4);
-		instr->release_note(instr, NOTE_E, 4);
+		instr->release_note(instr, NOTE_Ds_Eb, 4);
 		instr->release_note(instr, NOTE_G, 4);
 	}
 }

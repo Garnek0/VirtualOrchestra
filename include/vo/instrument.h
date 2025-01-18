@@ -39,7 +39,7 @@ struct instrument {
 	int maxTexturesBeforeRealloc;
 
 	int textureCount;
-	struct texture* textures;
+	struct renderer_instrument_texture* textures;
 };
 
 struct instrument_new_args {

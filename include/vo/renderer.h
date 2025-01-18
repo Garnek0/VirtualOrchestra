@@ -22,11 +22,8 @@
 
 #include <vo/instrument.h>
 
-struct texture {
+struct renderer_instrument_texture {
 	SDL_Texture* loadedTexture;
-
-	// This tells the renderer whether to draw this texture or not.
-	bool draw;
 
 	int offsetX;
 	int offsetY;
