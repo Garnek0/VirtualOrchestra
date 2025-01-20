@@ -20,11 +20,12 @@
 
 #include <vo/ver.h>
 #include <vo/debug.h>
-#include <vo/renderer.h>
+#include <vo/gfxui/renderer.h>
 #include <vo/event.h>
-#include <vo/instrument.h>
 #include <vo/note.h>
+#include <vo/audio/soundfont.h>
 
+#include <vo/instruments/instrument.h>
 #include <vo/instruments/piano.h>
 
 #include <stdio.h>
@@ -74,6 +75,11 @@ int main() {
 
 	if (instrument_init() != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: Instruments init failed!\n");
+		return 1;
+	}
+
+	if (soundfont_load("res/soundfont/msbasic.sf3") != 0) {
+		debug_log(LOGLEVEL_FATAL, "Main: Failed to load default SoundFont!\n");
 		return 1;
 	}
 

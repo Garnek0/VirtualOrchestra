@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <vo/instrument.h>
+#include <vo/instruments/instrument.h>
 
 int piano_init(struct instrument* instr);
 int piano_fini(struct instrument* instr);

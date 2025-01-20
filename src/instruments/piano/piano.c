@@ -20,7 +20,7 @@
 
 #include <vo/instruments/piano.h>
 #include <vo/debug.h>
-#include <vo/renderer.h>
+#include <vo/gfxui/renderer.h>
 #include <vo/note.h>
 
 int keyTextureIndexes[61];

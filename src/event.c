@@ -19,7 +19,7 @@
  */
 
 #include <vo/event.h>
-#include <vo/renderer.h>
+#include <vo/gfxui/renderer.h>
 #include <vo/list.h>
 
 #include <SDL2/SDL.h>
