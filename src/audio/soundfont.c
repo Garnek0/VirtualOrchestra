@@ -28,6 +28,36 @@
 // We load one single SF3 file containing all our instruments.
 struct soundfont_riff_chunk* sfData;
 
+struct soundfont_riff_chunk* soundfont_find_chunk(struct soundfont_riff_chunk* root, const char* fourcc, const char* firstFourBytes) {
+	for (uint32_t i = 0; i < sizeof(struct soundfont_riff_chunk) + root->chunkSize;) {
+		struct soundfont_riff_chunk* currentChunk = (struct soundfont_riff_chunk*)(&root->chunkData[i]);
+
+		if (!strncmp(fourcc, currentChunk->chunkID, 4)) {
+			if (firstFourBytes) {
+				if (currentChunk->chunkSize < 4)
+					continue;
+
+				if (strncmp(firstFourBytes, (char*)currentChunk->chunkData, 4) != 0)
+					continue;
+			}
+
+			struct soundfont_riff_chunk* newChunk = (struct soundfont_riff_chunk*)malloc(sizeof(struct soundfont_riff_chunk) + currentChunk->chunkSize);
+			memcpy((void*)newChunk, (void*)currentChunk, sizeof(struct soundfont_riff_chunk) + currentChunk->chunkSize);
+
+			return newChunk;
+		} else {
+			if (i == 0) {
+				i = 4;
+				continue;
+			}
+		}
+
+		i += sizeof(struct soundfont_riff_chunk) + currentChunk->chunkSize + currentChunk->chunkSize % 2;
+	}
+
+	return NULL;
+}
+
 int soundfont_load(const char* path) {
 	FILE* sfFile = fopen(path, "rb");
 
@@ -50,10 +80,10 @@ int soundfont_load(const char* path) {
 			return -1;
 	}
 
-	sfData = malloc(mainRiffChunk->chunkSize);
+	sfData = malloc(sizeof(struct soundfont_riff_chunk) + mainRiffChunk->chunkSize);
 
 	fseek(sfFile, 0, SEEK_SET);
-	fread((void*)sfData, mainRiffChunk->chunkSize, 1, sfFile);
+	fread((void*)sfData, sizeof(struct soundfont_riff_chunk) + mainRiffChunk->chunkSize, 1, sfFile);
 	fclose(sfFile);
 
 	free(mainRiffChunk);
@@ -69,5 +99,51 @@ int soundfont_load(const char* path) {
 
 	debug_log(LOGLEVEL_INFO, "SoundFont: Using SoundFont file \"%s\" for instrument samples.\n", path);
 
+	struct soundfont_riff_chunk* infoChunk = soundfont_find_chunk(sfData, "LIST", "INFO");
+
+	if (!infoChunk) {
+		debug_log(LOGLEVEL_ERROR, "SoundFont: Failed to load SoundFont file \"%s\": SoundFont INFO chunk missing.\n", path);
+		free(sfData);
+		return -1;
+	}
+
+	struct soundfont_riff_chunk* INAMChunk = soundfont_find_chunk(infoChunk, "INAM", NULL);
+
+	if (!INAMChunk) {
+		debug_log(LOGLEVEL_ERROR, "Soundfont: Cannot find SoundFont name chunk (INAM).\n");
+	} else {
+		const char* name = (char*)INAMChunk->chunkData;
+
+		debug_log(LOGLEVEL_INFO, "Soundfont: Name: %s\n", name);
+		free(INAMChunk);
+	}
+
+	struct soundfont_riff_chunk* ifilChunk = soundfont_find_chunk(infoChunk, "ifil", NULL);
+
+	if (!ifilChunk) {
+		debug_log(LOGLEVEL_ERROR, "SoundFont: Failed to load SoundFont file \"%s\": SoundFont ifil (version) chunk missing.\n", path);
+		free(ifilChunk);
+		free(infoChunk);
+		free(sfData);
+		return -1;
+	} else {
+		struct soundfont_version_tag* verTag = (struct soundfont_version_tag*)ifilChunk->chunkData;
+		
+		debug_log(LOGLEVEL_INFO, "Soundfont: Version %d.%02d\n", verTag->major, verTag->minor);
+		free(ifilChunk);
+	}	
+
+	struct soundfont_riff_chunk* isngChunk = soundfont_find_chunk(infoChunk, "isng", NULL);
+
+	if (!isngChunk) {
+		debug_log(LOGLEVEL_ERROR, "Soundfont: Cannot find SoundFont target sound engine chunk (isng).\n");
+	} else {
+		const char* targetSoundEngine = (char*)isngChunk->chunkData;
+		
+		debug_log(LOGLEVEL_INFO, "Soundfont: Target Sound Engine: %s\n", targetSoundEngine);
+		free(isngChunk);
+	}
+
+	free(infoChunk);
 	return 0;
 }

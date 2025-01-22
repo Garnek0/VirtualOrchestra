@@ -28,4 +28,10 @@ struct soundfont_riff_chunk {
 	uint8_t chunkData[0];
 };
 
+struct soundfont_version_tag {
+	uint16_t major;
+	uint16_t minor;
+};
+
+struct soundfont_riff_chunk* soundfont_find_chunk(struct soundfont_riff_chunk* root, const char* fourcc, const char* firstFourBytes);
 int soundfont_load(const char* path);
