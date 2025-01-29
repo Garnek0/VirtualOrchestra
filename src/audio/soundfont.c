@@ -28,17 +28,17 @@
 // We load one single SF3 file containing all our instruments.
 struct soundfont_riff_chunk* sfData;
 
+// firstFourBytes == NULL means dont check the first four bytes of the chunk.
 struct soundfont_riff_chunk* soundfont_find_chunk(struct soundfont_riff_chunk* root, const char* fourcc, const char* firstFourBytes) {
 	for (uint32_t i = 0; i < sizeof(struct soundfont_riff_chunk) + root->chunkSize;) {
 		struct soundfont_riff_chunk* currentChunk = (struct soundfont_riff_chunk*)(&root->chunkData[i]);
 
 		if (!strncmp(fourcc, currentChunk->chunkID, 4)) {
 			if (firstFourBytes) {
-				if (currentChunk->chunkSize < 4)
+				if (currentChunk->chunkSize < 4 || (strncmp(firstFourBytes, (char*)currentChunk->chunkData, 4) != 0)) {
+					i += sizeof(struct soundfont_riff_chunk) + currentChunk->chunkSize + currentChunk->chunkSize % 2;
 					continue;
-
-				if (strncmp(firstFourBytes, (char*)currentChunk->chunkData, 4) != 0)
-					continue;
+				}
 			}
 
 			struct soundfont_riff_chunk* newChunk = (struct soundfont_riff_chunk*)malloc(sizeof(struct soundfont_riff_chunk) + currentChunk->chunkSize);
@@ -107,6 +107,15 @@ int soundfont_load(const char* path) {
 		return -1;
 	}
 
+	struct soundfont_riff_chunk* pdtaChunk = soundfont_find_chunk(sfData, "LIST", "pdta");
+
+	if (!pdtaChunk) {
+		debug_log(LOGLEVEL_ERROR, "SoundFont: Failed to load SoundFont file \"%s\": SoundFont pdta chunk missing.\n", path);
+		free(sfData);
+		free(infoChunk);
+		return -1;
+	}
+
 	struct soundfont_riff_chunk* INAMChunk = soundfont_find_chunk(infoChunk, "INAM", NULL);
 
 	if (!INAMChunk) {
@@ -122,8 +131,8 @@ int soundfont_load(const char* path) {
 
 	if (!ifilChunk) {
 		debug_log(LOGLEVEL_ERROR, "SoundFont: Failed to load SoundFont file \"%s\": SoundFont ifil (version) chunk missing.\n", path);
-		free(ifilChunk);
 		free(infoChunk);
+		free(pdtaChunk);
 		free(sfData);
 		return -1;
 	} else {
@@ -144,6 +153,30 @@ int soundfont_load(const char* path) {
 		free(isngChunk);
 	}
 
+	// We're done fetching info
+
 	free(infoChunk);
+
+	// List all the presets as a test
+	
+	struct soundfont_riff_chunk* phdrChunk = soundfont_find_chunk(pdtaChunk, "phdr", NULL);
+
+	if (!phdrChunk) {
+		debug_log(LOGLEVEL_ERROR, "SoundFont: Failed to load SoundFont file \"%s\": SoundFont phdr chunk missing.\n", path);
+		free(pdtaChunk);
+		free(sfData);
+		return -1;
+	} else {
+		for (uint32_t i = 0; i < phdrChunk->chunkSize - sizeof(struct soundfont_preset_header); i += sizeof(struct soundfont_preset_header)) {
+			struct soundfont_preset_header* presetHeader = (struct soundfont_preset_header*)&phdrChunk->chunkData[i];
+
+			debug_log(LOGLEVEL_DEBUG, "%s (Bank: %d) (Preset: %d)\n", presetHeader->presetName, presetHeader->bank, presetHeader->preset);
+		}
+
+		free(phdrChunk);
+	}
+
+	free(pdtaChunk);
+
 	return 0;
 }

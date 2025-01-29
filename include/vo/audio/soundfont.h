@@ -22,16 +22,30 @@
 
 #include <stdint.h>
 
+struct soundfont_instance {
+	;
+};
+
 struct soundfont_riff_chunk {
 	char chunkID[4];
 	uint32_t chunkSize;
 	uint8_t chunkData[0];
-};
+} __attribute__((packed));
 
 struct soundfont_version_tag {
 	uint16_t major;
 	uint16_t minor;
 };
+
+struct soundfont_preset_header {
+	char presetName[20];
+	uint16_t preset;
+	uint16_t bank;
+	uint16_t presetBagIndex;
+	uint32_t library;
+	uint32_t genre;
+	uint32_t morphology;
+} __attribute__((packed));
 
 struct soundfont_riff_chunk* soundfont_find_chunk(struct soundfont_riff_chunk* root, const char* fourcc, const char* firstFourBytes);
 int soundfont_load(const char* path);
