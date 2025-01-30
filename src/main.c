@@ -23,7 +23,6 @@
 #include <vo/gfxui/renderer.h>
 #include <vo/event.h>
 #include <vo/note.h>
-#include <vo/audio/soundfont.h>
 
 #include <vo/instruments/instrument.h>
 #include <vo/instruments/piano.h>
@@ -71,15 +70,10 @@ int main() {
 	if (renderer_init() != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: Renderer init failed!\n");
 		return 1;
-	}	
+	}
 
 	if (instrument_init() != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: Instruments init failed!\n");
-		return 1;
-	}
-
-	if (soundfont_load("res/soundfont/msbasic.sf3") != 0) {
-		debug_log(LOGLEVEL_FATAL, "Main: Failed to load default SoundFont!\n");
 		return 1;
 	}
 
