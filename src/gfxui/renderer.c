@@ -57,7 +57,7 @@ int renderer_init() {
 #ifndef VO_VER_SNAPSHOT
 	sprintf(windowTitle, "Virtual Orchestra %d.%d.%d-%s", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
 #else
-	sprintf(windowTitle, "Virtual Orchestra %s (snapshot)", VO_VER_STAGE);
+	sprintf(windowTitle, "Virtual Orchestra %d.%d.%d-%s (snapshot)", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
 #endif
 
 	window = SDL_CreateWindow(windowTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_RESIZABLE);

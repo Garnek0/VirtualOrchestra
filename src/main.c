@@ -23,6 +23,7 @@
 #include <vo/gfxui/renderer.h>
 #include <vo/event.h>
 #include <vo/note.h>
+#include <vo/audio.h>
 
 #include <vo/instruments/instrument.h>
 #include <vo/instruments/piano.h>
@@ -69,6 +70,11 @@ int main() {
 
 	if (renderer_init() != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: Renderer init failed!\n");
+		return 1;
+	}
+
+	if (audio_init() != 0) {
+		debug_log(LOGLEVEL_FATAL, "Main: Audio Engine init failed!\n");
 		return 1;
 	}
 
