@@ -29,8 +29,6 @@
 
 static fluid_settings_t* settings;
 
-static struct list* soundfontList;
-
 int audio_init_instrument(struct instrument* instr, const char* soundfontPath, int bank, int preset, int polyphony) {
 	instr->synth = new_fluid_synth(settings);
 
@@ -85,8 +83,6 @@ int audio_init() {
 	// Default values are too low for what we're trying to do
 	fluid_settings_setint(settings, "audio.period-size", 1024);
 	fluid_settings_setint(settings, "audio.periods", 4);
-
-	soundfontList = list_create();
 
 	return 0;	
 }
