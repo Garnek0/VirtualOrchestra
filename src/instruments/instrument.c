@@ -21,6 +21,8 @@
 #include <vo/instruments/instrument.h>
 #include <vo/debug.h>
 #include <vo/gfxui/renderer.h>
+#include <vo/audio.h>
+#include <vo/dynamics.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -59,8 +61,15 @@ struct instrument* instrument_new(struct instrument_new_args args) {
 
 	newInstr->maxTexturesBeforeRealloc = 0;
 
-	if(newInstr->init(newInstr) != 0) {
+	newInstr->dynamic = DYNAMICS_MP;
+
+	if (newInstr->init(newInstr) != 0) {
 		debug_log(LOGLEVEL_ERROR, "Instrument: Could not initialize instrument with ID=%d.\n", newInstr->id);
+		goto fail;
+	}
+
+	if (audio_init_instrument(newInstr, args.soundfontPath, args.bank, args.preset, args.polyphony) != 0) {
+		debug_log(LOGLEVEL_ERROR, "Instrument: Audio engine could not initialize instrument with ID=%d.\n", newInstr->id);
 		goto fail;
 	}
 

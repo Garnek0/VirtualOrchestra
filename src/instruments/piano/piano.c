@@ -22,6 +22,7 @@
 #include <vo/debug.h>
 #include <vo/gfxui/renderer.h>
 #include <vo/note.h>
+#include <vo/audio.h>
 
 int keyTextureIndexes[61];
 int pressedKeyTextureIndexes[61];
@@ -89,7 +90,9 @@ int piano_play_note(struct instrument* instr, int note, int octave) {
 
 	octave -= 2;
 
-	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[octave*12+note], 60);	
+	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[octave*12+note], 60);
+
+	audio_note_on(instr, note, octave+2, 127 - (instr->dynamic - 1)*(127/8));
 
 	return 0;
 }
@@ -104,6 +107,8 @@ int piano_release_note(struct instrument* instr, int note, int octave) {
 	octave -= 2;
 
 	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[octave*12+note], 0);
+
+	audio_note_off(instr, note, octave+2);
 
 	return 0;
 }

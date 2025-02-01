@@ -20,9 +20,11 @@
 
 #pragma once
 
-#include <vo/instruments/instrument.h>
-
-int audio_init();
-int audio_init_instrument(struct instrument* instr, const char* soundfontPath, int bank, int preset, int polyphony);
-void audio_note_on(struct instrument* instr, int note, int octave, int velocity);
-void audio_note_off(struct instrument* instr, int note, int octave);
+#define DYNAMICS_FFF 1
+#define DYNAMICS_FF 2
+#define DYNAMICS_F 3
+#define DYNAMICS_MF 4
+#define DYNAMICS_MP 5
+#define DYNAMICS_P 6
+#define DYNAMICS_PP 7
+#define DYNAMICS_PPP 8

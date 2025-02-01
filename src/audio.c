@@ -20,62 +20,73 @@
 
 #include <vo/audio.h>
 #include <vo/debug.h>
-#include <fluidsynth.h>
+#include <vo/list.h>
+#include <vo/note.h>
 
 // Virtual Orchestra's audio engine uses fluidsynth 
 // for SF loading and playing, but I am hoping to 
 // write my own thing in the future.
 
+static fluid_settings_t* settings;
+
+static struct list* soundfontList;
+
+int audio_init_instrument(struct instrument* instr, const char* soundfontPath, int bank, int preset, int polyphony) {
+	instr->synth = new_fluid_synth(settings);
+
+	if (!instr->synth) {
+		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to create new synth for instrument with ID %d!\n", instr->id);
+		return -1;
+	}
+
+	int soundfontID;
+	if ((soundfontID = fluid_synth_sfload(instr->synth, soundfontPath, 1)) == -1) {
+		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to load soundfont file \"%s\"!\n", soundfontPath);
+		return -1;
+	}
+
+	fluid_synth_set_polyphony(instr->synth, polyphony);
+	fluid_synth_set_gain(instr->synth, 5.0);
+
+	instr->audioDriver = new_fluid_audio_driver(settings, instr->synth);
+	if (!instr->audioDriver) {
+		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to create new audio driver for instrument with ID %d!\n", instr->id);
+		return -1;
+	}
+
+	fluid_synth_program_select(instr->synth, 0, soundfontID, bank, preset);
+
+	return 0;
+}
+
+static inline int audio_vo_note_to_midi(int note, int octave) {
+	return (octave + 1) * 12 + note;	
+}
+
+void audio_note_on(struct instrument* instr, int note, int octave, int velocity) {
+	debug_log(LOGLEVEL_DEBUG, "NOTE ON (%d, %d) vel: %d, MIDI: %d\n", note, octave, velocity, audio_vo_note_to_midi(note, octave));
+	fluid_synth_noteon(instr->synth, 0, audio_vo_note_to_midi(note, octave), velocity);
+}
+
+void audio_note_off(struct instrument* instr, int note, int octave) {
+	debug_log(LOGLEVEL_DEBUG, "NOTE OFF (%d, %d), MIDI: %d\n", note, octave, audio_vo_note_to_midi(note, octave));
+	fluid_synth_noteoff(instr->synth, 0, audio_vo_note_to_midi(note, octave));
+}
+
 int audio_init() {
-	fluid_settings_t* settings = new_fluid_settings();
-	
+	// Initialize the fluidsynth settings
+	settings = new_fluid_settings();
+
 	if (!settings) {
 		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to create new settings!\n");
 		return -1;
 	}
 
-	fluid_synth_t* synth = new_fluid_synth(settings);
-
-	if (!synth) {
-		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to create new synth!\n");
-		delete_fluid_settings(settings);
-		return -1;
-	}
-
 	// Default values are too low for what we're trying to do
 	fluid_settings_setint(settings, "audio.period-size", 1024);
-	fluid_settings_setint(settings, "audio.periods", 2);
-	fluid_synth_set_polyphony(synth, 256);
+	fluid_settings_setint(settings, "audio.periods", 4);
 
-	int soundfontID;
-	if ((soundfontID = fluid_synth_sfload(synth, "res/soundfont/msbasic.sf3", 1)) == -1) {
-		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to load default (msbasic.sf3) SoundFont file!\n");
-		delete_fluid_synth(synth);
-		delete_fluid_settings(settings);
-		return -1;
-	}
-
-	if (fluid_synth_program_select(synth, 0, soundfontID, 0, 0) != FLUID_OK) {
-		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to get first program in the SoundFont file!\n");
-		delete_fluid_synth(synth);
-		delete_fluid_settings(settings);
-		return -1;
-	}
-
-	fluid_audio_driver_t* driver = new_fluid_audio_driver(settings, synth);
-
-	if (!driver) {
-		debug_log(LOGLEVEL_ERROR, "Audio Engine: FluidSynth: Failed to create audio driver for synth!\n");
-		delete_fluid_synth(synth);
-		delete_fluid_settings(settings);
-		return -1;
-	}
-
-	fluid_synth_set_gain(synth, 5.0);
-
-	fluid_synth_noteon(synth, 0, 60, 100);
-	fluid_synth_noteon(synth, 0, 63, 100);
-	fluid_synth_noteon(synth, 0, 66, 100);
+	soundfontList = list_create();
 
 	return 0;	
 }

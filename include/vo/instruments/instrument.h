@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <vo/list.h>
 #include <SDL2/SDL.h>
+#include <fluidsynth.h>
 
 struct instrument {
 	int id; // Instrument ID
@@ -40,6 +41,14 @@ struct instrument {
 
 	int textureCount;
 	struct renderer_instrument_texture* textures;
+
+	// fff, mf, pp etc.
+	int dynamic;
+
+	// Fluidsynth instance for this instrument.
+	fluid_synth_t* synth;
+	// Fluidsynth audio driver.
+	fluid_audio_driver_t* audioDriver;
 };
 
 struct instrument_new_args {
@@ -48,6 +57,10 @@ struct instrument_new_args {
 	int (*fini)(struct instrument* instr);
 	int (*play_note)(struct instrument* instr, int note, int octave);
 	int (*release_note)(struct instrument* instr, int note, int octave);
+
+	const char* soundfontPath;
+	int bank, preset;
+	int polyphony;
 };
 
 int instrument_init();
