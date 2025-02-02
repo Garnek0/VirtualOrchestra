@@ -5,9 +5,11 @@ CFLAGS += -Iinclude
 CFLAGS += -MMD -MP
 CFLAGS += $(shell pkg-config --cflags sdl2) $(shell pkg-config --cflags SDL2_image)
 CFLAGS += $(shell pkg-config --cflags fluidsynth)
+CFLAGS += $(shell pkg-config --cflags smf)
 LDFLAGS = -ldl -lm
 LDFLAGS += $(shell pkg-config --libs sdl2) $(shell pkg-config --libs SDL2_image)
 LDFLAGS += $(shell pkg-config --libs fluidsynth)
+LDFLAGS += $(shell pkg-config --libs smf)
 
 override SRC = $(shell find . -name '*.c')
 override OBJ = $(addprefix build/,$(SRC:.c=.c.o))

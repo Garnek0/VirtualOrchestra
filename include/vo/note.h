@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #define NOTE_C 0
 #define NOTE_Cs_Db 1
 #define NOTE_D 2
@@ -36,3 +38,30 @@
 #define NOTE_IS_NATURAL(x) \
 	((x != NOTE_Cs_Db) && (x != NOTE_Ds_Eb) && \
 	(x != NOTE_Fs_Gb) && (x != NOTE_Gs_Ab) && (x != NOTE_As_Bb))
+
+#define NOTE_TO_MIDI_KEY(key, octave) ((octave) + 1) * 12 + (key)
+
+#define NOTE_MIDI_TO_OCTAVE(midiKey) ((midiKey) / 12) - 1
+#define NOTE_MIDI_TO_KEY(midiKey) ((midiKey) % 12)
+
+struct complex_note {
+	int key;
+	int octave;
+
+	int midiKey;
+
+	bool sfz;
+	bool accent;
+	bool staccato;
+	bool marcato;
+	bool legatoNextNote;
+};
+
+struct simple_note {
+	int key;
+	int octave;
+
+	// (Optional) 0-127 value representing how loud the
+	// note should be.
+	int velocity;
+};

@@ -24,6 +24,7 @@
 #include <vo/list.h>
 #include <SDL2/SDL.h>
 #include <fluidsynth.h>
+#include <vo/note.h>
 
 struct instrument {
 	int id; // Instrument ID
@@ -32,8 +33,8 @@ struct instrument {
 	
 	int (*init)(struct instrument* instr); // Instrument init function
 	int (*fini)(struct instrument* instr); // Instrument fini function
-	int (*play_note)(struct instrument* instr, int note, int octave); // Start playing note
-	int (*release_note)(struct instrument* instr, int note, int octave); // Stop playing note
+	int (*play_note)(struct instrument* instr, struct complex_note note); // Start playing note
+	int (*release_note)(struct instrument* instr, struct complex_note note); // Stop playing note
 
 	// Max number of textures that can be loaded before the texture
 	// array is reallocated as double the size.
@@ -41,6 +42,9 @@ struct instrument {
 
 	int textureCount;
 	struct renderer_instrument_texture* textures;
+
+	// Tempo BPM
+	int tempo;
 
 	// fff, mf, pp etc.
 	int dynamic;
@@ -55,8 +59,8 @@ struct instrument_new_args {
 	float x, y;
 	int (*init)(struct instrument* instr);
 	int (*fini)(struct instrument* instr);
-	int (*play_note)(struct instrument* instr, int note, int octave);
-	int (*release_note)(struct instrument* instr, int note, int octave);
+	int (*play_note)(struct instrument* instr, struct complex_note note);
+	int (*release_note)(struct instrument* instr, struct complex_note note);
 
 	const char* soundfontPath;
 	int bank, preset;

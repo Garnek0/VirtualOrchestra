@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include <smf.h>
 
 void test_chord_callback() {
 	struct list* instrumentList = instrument_get_list();
@@ -37,9 +38,19 @@ void test_chord_callback() {
 	list_foreach(node, instrumentList) {
 		struct instrument* instr = (struct instrument*)node->data;
 
-		instr->play_note(instr, NOTE_C, 4);
-		instr->play_note(instr, NOTE_E, 4);
-		instr->play_note(instr, NOTE_G, 4);
+		struct complex_note note;
+		note.sfz = note.accent = note.staccato = note.marcato = false;
+		note.octave = 4;
+
+		note.key = NOTE_C;
+		note.midiKey = NOTE_TO_MIDI_KEY(note.key, note.octave);
+		instr->play_note(instr, note);
+		note.key = NOTE_E;
+		note.midiKey = NOTE_TO_MIDI_KEY(note.key, note.octave);
+		instr->play_note(instr, note);
+		note.key = NOTE_G;
+		note.midiKey = NOTE_TO_MIDI_KEY(note.key, note.octave);
+		instr->play_note(instr, note);
 	}
 }
 
@@ -49,9 +60,20 @@ void test_chord_release_callback() {
 	list_foreach(node, instrumentList) {
 		struct instrument* instr = (struct instrument*)node->data;
 
-		instr->release_note(instr, NOTE_C, 4);
-		instr->release_note(instr, NOTE_E, 4);
-		instr->release_note(instr, NOTE_G, 4);
+		struct complex_note note;
+		note.sfz = note.accent = note.staccato = note.marcato = false;
+		note.octave = 4;
+
+		note.key = NOTE_C;
+		note.midiKey = NOTE_TO_MIDI_KEY(note.key, note.octave);
+		instr->release_note(instr, note);
+		note.key = NOTE_E;
+		note.midiKey = NOTE_TO_MIDI_KEY(note.key, note.octave);
+		instr->release_note(instr, note);
+		note.key = NOTE_G;
+		note.midiKey = NOTE_TO_MIDI_KEY(note.key, note.octave);
+		instr->release_note(instr, note);
+
 	}
 }
 

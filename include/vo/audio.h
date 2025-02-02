@@ -21,8 +21,9 @@
 #pragma once
 
 #include <vo/instruments/instrument.h>
+#include <vo/note.h>
 
 int audio_init();
 int audio_init_instrument(struct instrument* instr, const char* soundfontPath, int bank, int preset, int polyphony);
-void audio_note_on(struct instrument* instr, int note, int octave, int velocity);
-void audio_note_off(struct instrument* instr, int note, int octave);
+void audio_note_on(struct instrument* instr, struct simple_note note);
+void audio_note_off(struct instrument* instr, struct simple_note note);

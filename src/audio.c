@@ -57,19 +57,15 @@ int audio_init_instrument(struct instrument* instr, const char* soundfontPath, i
 	return 0;
 }
 
-#define VO_NOTE_TO_MIDI_KEY(note, octave) ((octave) + 1) * 12 + (note)
-
-void audio_note_on(struct instrument* instr, int note, int octave, int velocity) {
-	debug_log(LOGLEVEL_DEBUG, "NOTE ON (%d, %d) vel: %d, MIDI: %d\n", note, octave, velocity, VO_NOTE_TO_MIDI_KEY(note, octave));
-	fluid_synth_noteon(instr->synth, 0, VO_NOTE_TO_MIDI_KEY(note, octave), velocity);
+void audio_note_on(struct instrument* instr, struct simple_note note) {
+	debug_log(LOGLEVEL_DEBUG, "NOTE ON (%d, %d) vel: %d, MIDI: %d\n", note.key, note.octave, note.velocity, NOTE_TO_MIDI_KEY(note.key, note.octave));
+	fluid_synth_noteon(instr->synth, 0, NOTE_TO_MIDI_KEY(note.key, note.octave), note.velocity);
 }
 
-void audio_note_off(struct instrument* instr, int note, int octave) {
-	debug_log(LOGLEVEL_DEBUG, "NOTE OFF (%d, %d), MIDI: %d\n", note, octave, VO_NOTE_TO_MIDI_KEY(note, octave));
-	fluid_synth_noteoff(instr->synth, 0, VO_NOTE_TO_MIDI_KEY(note, octave));
+void audio_note_off(struct instrument* instr, struct simple_note note) {
+	debug_log(LOGLEVEL_DEBUG, "NOTE OFF (%d, %d), MIDI: %d\n", note.key, note.octave, NOTE_TO_MIDI_KEY(note.key, note.octave));
+	fluid_synth_noteoff(instr->synth, 0, NOTE_TO_MIDI_KEY(note.key, note.octave));
 }
-
-#undef VO_NOTE_TO_MIDI_KEY
 
 int audio_init() {
 	// Initialize the fluidsynth settings

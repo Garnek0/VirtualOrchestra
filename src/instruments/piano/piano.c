@@ -81,34 +81,34 @@ int piano_fini(struct instrument* instr) {
 	return 0;
 }
 
-int piano_play_note(struct instrument* instr, int note, int octave) {
-	if ((octave > 6) && (octave != 6) && (note != NOTE_C))
+int piano_play_note(struct instrument* instr, struct complex_note note) {
+	if ((note.octave > 6) && (note.octave != 6) && (note.key != NOTE_C))
 		return -1;
 
-	if (octave < 1)
+	if (note.octave < 1)
 		return -1;
 
-	octave -= 2;
+	note.octave -= 2;
 
-	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[octave*12+note], 60);
+	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[note.octave*12+note.key], 60);
 
-	audio_note_on(instr, note, octave+2, 127 - (instr->dynamic - 1)*(127/8));
+	audio_note_on(instr, (struct simple_note){.key = note.key, .octave = note.octave, .velocity = note.sfz ? 127 : 127 - (instr->dynamic - 1)*(127/8)});
 
 	return 0;
 }
 
-int piano_release_note(struct instrument* instr, int note, int octave) {
-	if ((octave > 6) && (octave != 6) && (note != NOTE_C))
+int piano_release_note(struct instrument* instr, struct complex_note note) {
+	if ((note.octave > 6) && (note.octave != 6) && (note.key != NOTE_C))
 		return -1;
 
-	if (octave < 1)
+	if (note.octave < 1)
 		return -1;
 
-	octave -= 2;
+	note.octave -= 2;
 
-	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[octave*12+note], 0);
+	renderer_set_instrument_texture_opacity(instr, pressedKeyTextureIndexes[note.octave*12+note.key], 0);
 
-	audio_note_off(instr, note, octave+2);
+	audio_note_off(instr, (struct simple_note){.key = note.key, .octave = note.octave});
 
 	return 0;
 }

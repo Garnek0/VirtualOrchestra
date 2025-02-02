@@ -21,8 +21,9 @@
 #pragma once
 
 #include <vo/instruments/instrument.h>
+#include <vo/note.h>
 
 int piano_init(struct instrument* instr);
 int piano_fini(struct instrument* instr);
-int piano_play_note(struct instrument* instr, int note, int octave);
-int piano_release_note(struct instrument* instr, int note, int octave);
+int piano_play_note(struct instrument* instr, struct complex_note note);
+int piano_release_note(struct instrument* instr, struct complex_note note);
