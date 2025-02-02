@@ -43,9 +43,6 @@ struct instrument {
 	int textureCount;
 	struct renderer_instrument_texture* textures;
 
-	// Tempo BPM
-	int tempo;
-
 	// fff, mf, pp etc.
 	int dynamic;
 

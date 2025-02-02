@@ -30,7 +30,6 @@
 
 #include <stdio.h>
 #include <SDL2/SDL.h>
-#include <smf.h>
 
 void test_chord_callback() {
 	struct list* instrumentList = instrument_get_list();
