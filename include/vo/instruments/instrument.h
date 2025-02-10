@@ -46,6 +46,9 @@ struct instrument {
 	// fff, mf, pp etc.
 	int dynamic;
 
+	struct list* noteList;
+	int noteListIndex;
+
 	// Fluidsynth instance for this instrument.
 	fluid_synth_t* synth;
 	// Fluidsynth audio driver.

@@ -1,6 +1,6 @@
 CC = gcc
 LD = ld
-CFLAGS = -Wall -Wextra -Wno-unused-parameter
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-result
 CFLAGS += -Iinclude
 CFLAGS += -MMD -MP
 CFLAGS += $(shell pkg-config --cflags sdl2) $(shell pkg-config --cflags SDL2_image)

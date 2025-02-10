@@ -55,6 +55,9 @@ struct complex_note {
 	bool staccato;
 	bool marcato;
 	bool legatoNextNote;
+
+	int startTime;
+	int endTime;
 };
 
 struct simple_note {

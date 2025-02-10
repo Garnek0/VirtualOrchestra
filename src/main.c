@@ -24,6 +24,8 @@
 #include <vo/event.h>
 #include <vo/note.h>
 #include <vo/audio.h>
+#include <vo/midi.h>
+#include <vo/playback.h>
 
 #include <vo/instruments/instrument.h>
 #include <vo/instruments/piano.h>
@@ -104,6 +106,11 @@ int main() {
 		return 1;
 	}
 
+	if (playback_init() != 0) {
+		debug_log(LOGLEVEL_FATAL, "Main: Playback system init failed!\n");
+		return 1;
+	}
+
 	struct instrument_new_args args;
 	args.x = args.y = 0;
 	args.init = piano_init;
@@ -116,6 +123,7 @@ int main() {
 	args.polyphony = 61;
 
 	struct instrument* piano = instrument_new(args);
+	midi_load_file(piano, "res/midi/arpeggio.mid", 1);
 
 	(void)piano;
 
@@ -135,6 +143,7 @@ int main() {
 			time2 = time1;
 
 			renderer_iteration();
+			playback_iteration();
 			event_iteration();
 		}
 	}

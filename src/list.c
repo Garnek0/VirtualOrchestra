@@ -32,6 +32,9 @@ struct list* list_create() {
 }
 
 void list_destroy(struct list* destroyList) {
+	if (!destroyList)
+		return;
+
 	struct list_node* next;
 
 	for (struct list_node* i = destroyList->head; i; i = next) {
