@@ -58,12 +58,10 @@ int audio_init_instrument(struct instrument* instr, const char* soundfontPath, i
 }
 
 void audio_note_on(struct instrument* instr, struct simple_note note) {
-	debug_log(LOGLEVEL_DEBUG, "NOTE ON (%d, %d) vel: %d, MIDI: %d\n", note.key, note.octave, note.velocity, NOTE_TO_MIDI_KEY(note.key, note.octave));
 	fluid_synth_noteon(instr->synth, 0, NOTE_TO_MIDI_KEY(note.key, note.octave), note.velocity);
 }
 
 void audio_note_off(struct instrument* instr, struct simple_note note) {
-	debug_log(LOGLEVEL_DEBUG, "NOTE OFF (%d, %d), MIDI: %d\n", note.key, note.octave, NOTE_TO_MIDI_KEY(note.key, note.octave));
 	fluid_synth_noteoff(instr->synth, 0, NOTE_TO_MIDI_KEY(note.key, note.octave));
 }
 

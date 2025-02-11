@@ -34,7 +34,6 @@ int midi_load_file(struct instrument* instr, const char* path, int track) {
 	}
 
 	list_destroy(instr->noteList);
-	instr->noteListIndex = 0;
 
 	instr->noteList = list_create();
 
@@ -60,8 +59,10 @@ int midi_load_file(struct instrument* instr, const char* path, int track) {
 				if (smf_event_is_metadata(notePairEvent) || notePairEvent->track->track_number != track)
 					continue;
 
-				if (((notePairEvent->midi_buffer[0] >> 4) == 0x8) && (notePairEvent->midi_buffer[1] == event->midi_buffer[1]))
+				if (((notePairEvent->midi_buffer[0] >> 4) == 0x8) && (notePairEvent->midi_buffer[1] == event->midi_buffer[1])) {
 					note->endTime = (int)(notePairEvent->time_seconds*1000);
+					break;
+				}
 			}
 
 			list_insert(instr->noteList, (void*)note);

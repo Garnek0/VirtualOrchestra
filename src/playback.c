@@ -44,7 +44,14 @@ void playback_stop_callback() {
 	list_foreach(i, instrument_get_list()) {
 		struct instrument* instr = (struct instrument*)i->data;
 
-		instr->noteListIndex = 0;
+		list_foreach(j, instr->noteList) {
+			struct complex_note* note = (struct complex_note*)j->data;
+
+			if (note->playing) {
+				instr->release_note(instr, *note);
+				note->playing = false;
+			}
+		}
 	}
 }
 
@@ -59,20 +66,19 @@ void playback_iteration() {
 		list_foreach(i, instrument_get_list()) {
 			struct instrument* instr = (struct instrument*)i->data;
 
-			int noteListIndex = 0;
 			list_foreach(j, instr->noteList) {
-				if (instr->noteListIndex > noteListIndex)
-					goto skip;
-
 				struct complex_note* note = (struct complex_note*)j->data;
 
-				if ((note->startTime <= playbackTime) && (note->endTime >= playbackTime)) {
-					instr->play_note(instr, *note);
-					instr->noteListIndex = noteListIndex+1;
+				if ((note->endTime <= playbackTime) && note->playing) {
+					note->playing = false;
+					instr->release_note(instr, *note);
+					continue;
 				}
 
-skip:
-				noteListIndex++;
+				if ((note->startTime <= playbackTime) && (note->endTime >= playbackTime) && !note->playing) {
+					note->playing = true;
+					instr->play_note(instr, *note);
+				}
 			}
 		}
 	}

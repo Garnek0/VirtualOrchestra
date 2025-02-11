@@ -31,7 +31,7 @@ build/%.c.o: %.c
 
 .PHONY: run
 run: vo
-	./build/vo
+	./build/vo res/midi/arpeggio.mid
 
 .PHONY: clean
 clean:

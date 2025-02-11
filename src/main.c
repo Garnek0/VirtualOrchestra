@@ -78,8 +78,18 @@ void test_chord_release_callback() {
 	}
 }
 
-int main() {
+int main(int argc, char** argv) {
 	printf("Virtual Orchestra %d.%d.%d-%s by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
+
+	const char* midiPath;
+
+	if (argc == 2) {
+		midiPath = argv[1];
+	} else {
+		debug_log(LOGLEVEL_FATAL, "Main: Invalid number of arguments!\nUsage: %s pathToMIDIFile\n", argv[0]);
+		return 1;
+	}
+
  
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		debug_log(LOGLEVEL_FATAL, "Main: SDL init failed: %s\n", SDL_GetError());
@@ -123,7 +133,7 @@ int main() {
 	args.polyphony = 61;
 
 	struct instrument* piano = instrument_new(args);
-	midi_load_file(piano, "res/midi/arpeggio.mid", 1);
+	midi_load_file(piano, midiPath, 1);
 
 	(void)piano;
 

@@ -58,6 +58,7 @@ struct complex_note {
 
 	int startTime;
 	int endTime;
+	bool playing;
 };
 
 struct simple_note {
