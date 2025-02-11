@@ -27,6 +27,7 @@ struct keyboard_callback {
 	SDL_Keycode key;
 	SDL_Keymod mod;
 	void (*callback)(void);
+	bool alreadyCalled; // Needed to avoid extra calls if the key is not lifted quickly enough
 };
 
 struct mouse_wheel_callback {

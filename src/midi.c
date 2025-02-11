@@ -71,12 +71,6 @@ int midi_load_file(struct instrument* instr, const char* path, int track) {
 		}
 	}
 
-	list_foreach(i, instr->noteList) {
-		struct complex_note* note = (struct complex_note*)i->data;
-
-		debug_log(LOGLEVEL_DEBUG, "NOTE %d (%d %d) %d %d\n", note->midiKey, note->key, note->octave, note->startTime, note->endTime);
-	}
-
 	playback_reset();
 	smf_delete(midiFile);
 

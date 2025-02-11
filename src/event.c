@@ -80,8 +80,12 @@ void event_iteration() {
 	list_foreach(node, keyboardCallbackList) {
 		keyboardCallback = (struct keyboard_callback*)node->data;
 
-		if (kbState[SDL_GetScancodeFromKey(keyboardCallback->key)] && ((kmState & keyboardCallback->mod) == keyboardCallback->mod))
+		if (kbState[SDL_GetScancodeFromKey(keyboardCallback->key)] && ((kmState & keyboardCallback->mod) == keyboardCallback->mod) && !(keyboardCallback->alreadyCalled)) {
 			keyboardCallback->callback();
+			keyboardCallback->alreadyCalled = true;
+		} else if (!(kbState[SDL_GetScancodeFromKey(keyboardCallback->key)]) && keyboardCallback->alreadyCalled) {
+			keyboardCallback->alreadyCalled = false;
+		}
 	}
 
 	// Do the same thing for the mouse
@@ -102,6 +106,7 @@ struct keyboard_callback* event_register_keyboard_callback(SDL_Keycode keycode, 
 	keyboardCallback->key = keycode;
 	keyboardCallback->mod = mod;
 	keyboardCallback->callback = callback;
+	keyboardCallback->alreadyCalled = false;
 
 	list_insert(keyboardCallbackList, (void*)keyboardCallback);
 
