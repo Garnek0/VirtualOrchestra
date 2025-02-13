@@ -79,7 +79,7 @@ void test_chord_release_callback() {
 }
 
 int main(int argc, char** argv) {
-	printf("Virtual Orchestra %d.%d.%d-%s by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
+	printf("Virtual Orchestra v%d.%d.%d-%s by Garnek0 (Popa Vlad)\n", VO_VER_MAJOR, VO_VER_MINOR, VO_VER_PATCH, VO_VER_STAGE);
 
 	const char* midiPath;
 

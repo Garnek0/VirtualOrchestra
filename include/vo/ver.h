@@ -22,8 +22,8 @@
 
 #define VO_VER_MAJOR 0
 #define VO_VER_MINOR 0
-#define VO_VER_PATCH 1
+#define VO_VER_PATCH 2
 
 #define VO_VER_STAGE "pre-alpha"
 
-// #define VO_VER_SNAPSHOT
+#define VO_VER_SNAPSHOT
