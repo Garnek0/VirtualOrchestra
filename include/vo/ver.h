@@ -26,4 +26,4 @@
 
 #define VO_VER_STAGE "pre-alpha"
 
-#define VO_VER_SNAPSHOT
+// #define VO_VER_SNAPSHOT

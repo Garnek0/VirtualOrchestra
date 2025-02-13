@@ -25,8 +25,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-int previousTime; 
-
+int previousTime;
 int playbackTime;
 bool playing;
 
@@ -60,8 +59,12 @@ void playback_reset() {
 }
 
 void playback_iteration() {
+	int now = SDL_GetPerformanceCounter();
+	double deltaTime = (double)(now - previousTime) / SDL_GetPerformanceFrequency();
+	previousTime = now;
+
 	if (playing) {
-		playbackTime +=	SDL_GetTicks() - previousTime;
+		playbackTime += (int)(deltaTime * 1000);
 
 		list_foreach(i, instrument_get_list()) {
 			struct instrument* instr = (struct instrument*)i->data;
@@ -81,16 +84,16 @@ void playback_iteration() {
 				}
 			}
 		}
-	}
 
-	previousTime = SDL_GetTicks();
+		return;
+	}
 }
 
 int playback_init() {
 	event_register_keyboard_callback(SDLK_SPACE, KMOD_NONE, playback_toggle_callback);
 	event_register_keyboard_callback(SDLK_s, KMOD_NONE, playback_stop_callback);
 
-	previousTime = SDL_GetTicks();
+	previousTime = SDL_GetPerformanceCounter();
 
 	return 0;
 }
