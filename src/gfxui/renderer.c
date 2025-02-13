@@ -150,7 +150,7 @@ int renderer_load_instrument_texture(struct instrument* instr, const char* path,
 		memset((void*)instr->textures, 0, sizeof(struct renderer_instrument_texture)*16);
 	} else if (instr->maxTexturesBeforeRealloc == instr->textureCount) {
 
-		// Reallocate and double the size of the textures and textureDraw arrays. 
+		// Reallocate and double the size of the texture array.
 
 		instr->maxTexturesBeforeRealloc *= 2;
 

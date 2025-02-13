@@ -30,8 +30,8 @@ I dont know how MacOS works, but I *think* the process is the same as on Linux.
 ## Instructions
 
 Once you open VO you will be greeted with a piano keyboard. As of now thats the only instrument available (again, this is pre-alpha after all). 
-To start playing/pause the music press Space. To stop and rewind to the beginning press S.
-You can move around using the arrow keys or by moving the mouse while holding the middle button, though there isn't much to see.
+To start playing/pause the music, press Space. To stop and rewind to the beginning, press S.
+You can move the camera around using the arrow keys or by dragging the stage while holding down the middle mouse button, though there isn't much to see.
 You can also zoom in/out with the scroll wheel.
 
 ## Acknowledgements
